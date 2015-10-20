@@ -2,6 +2,8 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
+IMG_NAME = 'poehler'
+
 class Spiral(object):
 
     def __init__(self, image):
@@ -30,8 +32,9 @@ class Spiral(object):
         tmp = np.add(tmp,midgrey)
         tmp = np.add(tmp,lightgrey)
         tmp[tmp == 0] = 255
-        cv2.imshow("image",tmp)
-        cv2.waitKey(0)
+        # cv2.imshow("image",tmp)
+        # cv2.waitKey(0)
+        cv2.imwrite('images/binarized/'+IMG_NAME+'/4shades.png', tmp)
 
     def binary4_split(self):
         """
@@ -42,16 +45,22 @@ class Spiral(object):
         midgrey = cv2.inRange(self.image, 92, 152)
         lightgrey = cv2.inRange(self.image, 153, 220)
         white = cv2.inRange(self.image, 221, 255)
-        cv2.imshow("draw black", black)
-        cv2.imshow("draw dark grey", darkgrey)
-        cv2.imshow("draw mid grey", midgrey)
-        cv2.imshow("draw light grey", lightgrey)
-        cv2.imshow("leave white", white)
-        cv2.waitKey(0)
+        # cv2.imshow("draw black", black)
+        # cv2.imshow("draw dark grey", darkgrey)
+        # cv2.imshow("draw mid grey", midgrey)
+        # cv2.imshow("draw light grey", lightgrey)
+        # cv2.imshow("leave white", white)
+        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_black.png', black)
+        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_darkgrey.png', darkgrey)
+        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_midgrey.png', midgrey)
+        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_lightgrey.png', lightgrey)
+        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_white.png', white)
+        # cv2.waitKey(0)
 
 
     def display_binary(self):
-        cv2.imshow("image", self.image_bw)
+        # cv2.imshow("image", self.image_bw)
+        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary.png', self.image_bw)
         cv2.waitKey(0)
 
     def display_image(self):
@@ -59,7 +68,7 @@ class Spiral(object):
         cv2.waitKey(0)
 
 if __name__ == '__main__':
-    puppy = Spiral('images/puppy.jpg')
-    # puppy.binary4()
-    # puppy.binary4_split()
-    # puppy.display_binary()
+    puppy = Spiral('images/poehler.jpg')
+    puppy.binary4()
+    puppy.binary4_split()
+    puppy.display_binary()
