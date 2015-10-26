@@ -14,47 +14,52 @@ class Spiral(object):
         self.im2 = cv2.imread(image) #non grey-scaled
         self.window = cv2.namedWindow("image")
         self.thresh, self.image_bw = cv2.threshold(self.image, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        self.black = None
+        self.darkgrey = None
+        # self.midgrey = None
+        self.lightgrey = None
+        self.white = None
 
     def binary4(self):
         """
         Splits image into 4 binarized images with different light thresholds and displays them together
         """
-        black = cv2.inRange(self.image, 0, 30)
-        darkgrey = cv2.inRange(self.image, 31, 91)
-        midgrey = cv2.inRange(self.image, 92, 152)
-        lightgrey = cv2.inRange(self.image, 153, 220)
+        black = cv2.inRange(self.image, 0, 40)
+        darkgrey = cv2.inRange(self.image, 41, 131)
+        # midgrey = cv2.inRange(self.image, 92, 152)
+        lightgrey = cv2.inRange(self.image, 132, 220)
         white = cv2.inRange(self.image, 221, 255)
         black[black == 255] = 1
         darkgrey[darkgrey == 255] = 65
-        midgrey[midgrey == 255] = 132
+        # midgrey[midgrey == 255] = 132
         lightgrey[lightgrey == 255] = 196
         tmp = np.add(black,darkgrey)
-        tmp = np.add(tmp,midgrey)
+        # tmp = np.add(tmp,midgrey)
         tmp = np.add(tmp,lightgrey)
         tmp[tmp == 0] = 255
         # cv2.imshow("image",tmp)
         # cv2.waitKey(0)
-        cv2.imwrite('images/binarized/'+IMG_NAME+'/4shades.png', tmp)
+        cv2.imwrite('images/binarized/'+IMG_NAME+'/3shades.png', tmp)
 
     def binary4_split(self):
         """
         Splits image into 4 binarized images with different light thresholds and displays them separate
         """
-        black = cv2.inRange(self.image, 0, 30)
-        darkgrey = cv2.inRange(self.image, 31, 91)
-        midgrey = cv2.inRange(self.image, 92, 152)
-        lightgrey = cv2.inRange(self.image, 153, 220)
-        white = cv2.inRange(self.image, 221, 255)
+        self.black = cv2.inRange(self.image, 0, 40)
+        self.darkgrey = cv2.inRange(self.image, 41, 131)
+        # self.midgrey = cv2.inRange(self.image, 92, 152)
+        self.lightgrey = cv2.inRange(self.image, 132, 220)
+        self.white = cv2.inRange(self.image, 221, 255)
         # cv2.imshow("draw black", black)
         # cv2.imshow("draw dark grey", darkgrey)
         # cv2.imshow("draw mid grey", midgrey)
         # cv2.imshow("draw light grey", lightgrey)
         # cv2.imshow("leave white", white)
-        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_black.png', black)
-        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_darkgrey.png', darkgrey)
-        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_midgrey.png', midgrey)
-        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_lightgrey.png', lightgrey)
-        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_white.png', white)
+        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_black.png', self.black)
+        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_darkgrey.png', self.darkgrey)
+        # cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_midgrey.png', self.midgrey)
+        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_lightgrey.png', self.lightgrey)
+        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_white.png', self.white)
         # cv2.waitKey(0)
 
 
