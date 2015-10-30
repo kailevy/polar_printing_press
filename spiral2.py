@@ -8,7 +8,7 @@ import csv
 
 def cart2pol(x,y):
     r = np.sqrt(x**2 + y**2)
-    theta = np.arctan2(y,x)
+    theta = np.arctan2(y,x) + np.pi
     return (r,theta)
 
 class PolarImageConverter(object):
@@ -17,6 +17,7 @@ class PolarImageConverter(object):
         imageArray[imageArray == 255] = 1
         self.imageArray = imageArray
         self.imageSize = imageArray.shape
+        self.largestRadius = min(self.imageSize)/2
         self.origin = None
         self.cartesianList = []
         self.polarList = []
@@ -40,13 +41,23 @@ class PolarImageConverter(object):
         self.polarList = []
         for x,y,value in self.cartesianList:
             polar = cart2pol(x,y)
-            l = np.around([polar[0],polar[1]], decimals=1)
-            l = l.tolist()
-            l.append(value)
-            self.polarList.append(l)
+            l = [polar[0],polar[1]]
+            if l[0] <= self.largestRadius:
+                l = np.around([100*l[0]/self.largestRadius,l[1]], decimals=2)
+                # convert radius to percentage of total radius
+                l = l.tolist()
+                l.append(value)
+                self.polarList.append(l)
+            else:
+                # cutting corners and making it a circle image
+                pass
         self.polarList.sort(key=lambda x : (x[0], x[1]))
 
     def constructTraversalDirections(self):
+        """
+        Constructs list with traversal directions in form of
+        (down point, up point)
+        """
         self.polarTraversal = []
         tmp = []
         for coord in self.polarList:
