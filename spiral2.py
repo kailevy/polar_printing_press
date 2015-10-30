@@ -42,7 +42,15 @@ class PolarImageConverter(object):
             polar = cart2pol(x,y)
             l = [polar[0],polar[1],value]
             self.polarList.append(l)
-        self.polarList.sort()
+        self.polarList.sort(key=lambda x : (x[0], x[1]))
+        for i in range(len(self.polarList)):
+            l = self.polarList[i]
+            r = np.around(l[0], decimals=1)
+            t = np.around(l[1], decimals=1)
+            v = np.around(l[2], decimals=0)
+            tmp = [r,t,v]
+            self.polarList[i] = tmp
+
 
     def savePolarCSV(self, filename):
         with open(filename, 'wb') as f:
