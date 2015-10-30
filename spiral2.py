@@ -42,7 +42,7 @@ class PolarImageConverter(object):
             polar = cart2pol(x,y)
             l = [polar[0],polar[1],value]
             self.polarList.append(l)
-        self.polarList.sort()
+        self.polarList.sort(key=lambda x : (x[0], x[1]))
         for i in range(len(self.polarList)):
             l = self.polarList[i]
             r = np.around(l[0], decimals=1)
