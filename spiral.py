@@ -12,7 +12,7 @@ class Spiral(object):
         """
         self.image = cv2.imread(image,0) # grey-scaled
         self.im2 = cv2.imread(image) #non grey-scaled
-        #self.window = cv2.namedWindow("image")
+        # self.window = cv2.namedWindow("image")
         self.thresh, self.image_bw = cv2.threshold(self.image, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
         self.black = None
         self.darkgrey = None

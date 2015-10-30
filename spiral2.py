@@ -40,22 +40,26 @@ class PolarImageConverter(object):
         self.polarList = []
         for x,y,value in self.cartesianList:
             polar = cart2pol(x,y)
-            l = [polar[0],polar[1],value]
+            l = np.around([polar[0],polar[1]], decimals=1)
+            l = l.tolist()
+            l.append(value)
             self.polarList.append(l)
         self.polarList.sort(key=lambda x : (x[0], x[1]))
-        for i in range(len(self.polarList)):
-            l = self.polarList[i]
-            r = np.around(l[0], decimals=1)
-            t = np.around(l[1], decimals=1)
-            v = np.around(l[2], decimals=0)
-            tmp = [r,t,v]
-            self.polarList[i] = tmp
 
+    def constructTraversalDirections(self):
+        self.polarTraversal = []
+        tmp = []
+        for coord in self.polarList:
+            if coord[2] == 1:
+                tmp.append(coord)
+            if coord[2] == 0 and len(tmp) > 0:
+                self.polarTraversal.append((tmp[0][0],tmp[0][1],coord[0],coord[1]))
+                tmp = []
 
     def savePolarCSV(self, filename):
         with open(filename, 'wb') as f:
             writer = csv.writer(f)
-            writer.writerows(self.polarList)
+            writer.writerows(self.polarTraversal)
 
 if __name__=="__main__":
     puppy = spiral.Spiral('images/puppy.jpg')
@@ -64,4 +68,5 @@ if __name__=="__main__":
     converter.cropImage()
     converter.constructCartesianList()
     converter.constructPolarFromCartesian()
-    converter.savePolarCSV('puppy.csv')
+    converter.constructTraversalDirections()
+    converter.savePolarCSV('puppypolartraversal.csv')
