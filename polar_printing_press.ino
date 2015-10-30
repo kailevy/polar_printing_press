@@ -18,3 +18,15 @@ void loop() {
   numsteps += 1;
   Serial.println(numsteps);
 }
+
+void penUp() {
+	// do the control to put the pen up here
+}
+
+void penDown() {
+	// do pen down here
+}
+
+void moveFromPointToPoint(float startX, float startY, float endX, float endY) {
+	// do things to move pen from point to point
+}
