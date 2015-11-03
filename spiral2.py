@@ -3,6 +3,7 @@ import cv2
 import matplotlib.pyplot as plt
 import spiral
 import csv
+import math
 
 # TODO: Potentially remove precision from the coordinates so that arduino doesn't overflow?
 
@@ -21,6 +22,7 @@ class PolarImageConverter(object):
         self.origin = None
         self.cartesianList = []
         self.polarList = []
+        self.spiralList = []
 
     def cropImage(self):
         #delete odd sized columns and rows
@@ -28,7 +30,9 @@ class PolarImageConverter(object):
             self.imageArray = np.delete(self.imageArray, 0, axis=0)
         if self.imageSize[1] % 2 == 0:
             self.imageArray = np.delete(self.imageArray, 0, axis=1)
+        # TODO: Crop not square images
         self.imageSize = self.imageArray.shape
+        self.sideSize = min(self.imageSize) / 2
 
 
     def constructCartesianList(self):
@@ -67,6 +71,44 @@ class PolarImageConverter(object):
                 self.polarTraversal.append((tmp[0][0],tmp[0][1],coord[0],coord[1]))
                 tmp = []
 
+    def constructSpiralCommands(self, totalRotations, stepsPerRotation):
+        self.spiralList = [['totalRotations', totalRotations]]
+        steps = 0.0
+        angle = 0
+        radius = 0
+
+        for i in range(totalRotations*stepsPerRotation):
+            # constructs all of the angle, rotation, and radius variables for this step
+            steps += 1.0
+            rotations = steps / stepsPerRotation
+            angle = (360.0) * steps / stepsPerRotation
+            radiansAngle = angle * math.pi / 180.0
+            radius = rotations / totalRotations * self.sideSize
+
+            # gets the predicted x and y coordinates and gets the image data nearest to that
+            # angle will be from right spiraling counter clockwise
+            xDistance = int(round(radius * math.cos(radiansAngle)))
+            yDistance = int(round(radius * math.sin(radiansAngle)))
+
+            self.spiralList.append([angle, self.imageArray[xDistance][yDistance]])
+
+    def constructSpiralTraversalDirections(self):
+        """
+        Constructs list with traversal directions in form of
+        (down point, up point)
+        """
+        self.spiralTraversal = [self.spiralList[1]] # self.spiralList[0] is a command
+        prevCommand = self.spiralList[1][1]
+        for coord in self.spiralList[2:]:
+            if coord[1] != prevCommand:
+                self.spiralTraversal.append(coord)
+            prevCommand = coord[1]
+
+    def saveSpiralCSV(self, filename):
+        with open(filename, 'wb') as f:
+            writer = csv.writer(f)
+            writer.writerows(self.spiralTraversal)
+
     def savePolarCSV(self, filename):
         with open(filename, 'wb') as f:
             writer = csv.writer(f)
@@ -81,3 +123,6 @@ if __name__=="__main__":
     converter.constructPolarFromCartesian()
     converter.constructTraversalDirections()
     converter.savePolarCSV('puppypolartraversal.csv')
+    converter.constructSpiralCommands(1, 200)
+    converter.constructSpiralTraversalDirections()
+    converter.saveSpiralCSV('puppyspiraltraversal.csv')
