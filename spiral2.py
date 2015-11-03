@@ -30,7 +30,18 @@ class PolarImageConverter(object):
             self.imageArray = np.delete(self.imageArray, 0, axis=0)
         if self.imageSize[1] % 2 == 0:
             self.imageArray = np.delete(self.imageArray, 0, axis=1)
-        # TODO: Crop not square images
+        self.imageSize = self.imageArray.shape
+
+        # Crop not square images
+        if self.imageSize[0] > self.imageSize[1]:
+            largerSide = 0
+        else:
+            largerSide = 1
+        sideDifference = self.imageSize[largerSide] - self.imageSize[1-largerSide]
+        self.imageArray = np.delete(self.imageArray, range(sideDifference/2), axis=largerSide)
+        self.imageArray = np.delete(self.imageArray, range(len(self.imageArray)-sideDifference/2,len(self.imageArray)), axis=largerSide)
+
+        # save variables for drawing
         self.imageSize = self.imageArray.shape
         self.largestRadius = min(self.imageSize) / 2
 
