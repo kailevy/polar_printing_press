@@ -59,3 +59,7 @@ void readSerialCommand() {
     int v = value.toInt();
   } 
 }
+
+void drawCircle(int radius) {
+  
+}
