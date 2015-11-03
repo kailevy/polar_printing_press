@@ -133,8 +133,3 @@ if __name__=="__main__":
     converter.constructSpiralCommands(1, 200)
     converter.constructSpiralTraversalDirections()
     converter.saveSpiralCSV('puppyspiraltraversal.csv')
-
-    boolio = spiral.Spiral('images/boolio-logo.png')
-    boolio.binary4_split()
-    c = PolarImageConverter(boolio.black)
-    c.cropImage()
