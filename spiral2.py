@@ -32,7 +32,7 @@ class PolarImageConverter(object):
             self.imageArray = np.delete(self.imageArray, 0, axis=1)
         # TODO: Crop not square images
         self.imageSize = self.imageArray.shape
-        self.sideSize = min(self.imageSize) / 2
+        self.largestRadius = min(self.imageSize) / 2
 
 
     def constructCartesianList(self):
@@ -71,8 +71,14 @@ class PolarImageConverter(object):
                 self.polarTraversal.append((tmp[0][0],tmp[0][1],coord[0],coord[1]))
                 tmp = []
 
-    def constructSpiralCommands(self, totalRotations, stepsPerRotation):
-        self.spiralList = [['totalRotations', totalRotations]]
+    def constructSpiralCommands(self, totalRotations, stepsPerRotation, marker):
+        """
+        Markers:
+        0 = black (driving)
+        1 = darkgrey (+120 degrees)
+        2 = lightgrey (+240 degrees)
+        """
+        self.spiralList = [[100.0/totalRotations]]
         steps = 0.0
         angle = 0
         radius = 0
@@ -81,16 +87,16 @@ class PolarImageConverter(object):
             # constructs all of the angle, rotation, and radius variables for this step
             steps += 1.0
             rotations = steps / stepsPerRotation
-            angle = (360.0) * steps / stepsPerRotation
+            angle = (360.0) * steps / stepsPerRotation + 120 * marker
             radiansAngle = angle * math.pi / 180.0
-            radius = rotations / totalRotations * self.sideSize
+            radius = rotations / totalRotations * self.largestRadius
 
             # gets the predicted x and y coordinates and gets the image data nearest to that
             # angle will be from right spiraling counter clockwise
-            xDistance = int(round(radius * math.cos(radiansAngle)))
-            yDistance = int(round(radius * math.sin(radiansAngle)))
+            xDistance = int(round(radius * math.cos(radiansAngle))) + self.largestRadius
+            yDistance = self.largestRadius - int(round(radius * math.sin(radiansAngle)))
 
-            self.spiralList.append([angle, self.imageArray[xDistance][yDistance]])
+            self.spiralList.append([int(round(angle)), self.imageArray[xDistance][yDistance], marker])
 
     def constructSpiralTraversalDirections(self):
         """
@@ -103,6 +109,7 @@ class PolarImageConverter(object):
             if coord[1] != prevCommand:
                 self.spiralTraversal.append(coord)
             prevCommand = coord[1]
+        return self.spiralTraversal
 
     def saveSpiralCSV(self, filename):
         with open(filename, 'wb') as f:
@@ -114,15 +121,35 @@ class PolarImageConverter(object):
             writer = csv.writer(f)
             writer.writerows(self.polarTraversal)
 
+def combineLists( l1, l2, l3=[]):
+    return sorted(l1+l2+l3)
+
+
+def saveCSV(size, l, filename):
+    with open(filename, 'wb') as f:
+        writer = csv.writer(f)
+        writer.writerows([size])
+        writer.writerows(l)
+
+
 if __name__=="__main__":
     puppy = spiral.Spiral('images/puppy.jpg')
     puppy.binary4_split()
-    converter = PolarImageConverter(puppy.black)
-    converter.cropImage()
-    converter.constructCartesianList()
-    converter.constructPolarFromCartesian()
-    converter.constructTraversalDirections()
-    converter.savePolarCSV('puppypolartraversal.csv')
-    converter.constructSpiralCommands(1, 200)
-    converter.constructSpiralTraversalDirections()
-    converter.saveSpiralCSV('puppyspiraltraversal.csv')
+    totalRotations = 200
+    stepsPerRotation = 200
+    blackConverter = PolarImageConverter(puppy.black)
+    blackConverter.cropImage()
+    blackConverter.constructCartesianList()
+    blackConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 0)
+    black = blackConverter.constructSpiralTraversalDirections()
+    darkgreyConverter = PolarImageConverter(puppy.darkgrey)
+    darkgreyConverter.cropImage()
+    darkgreyConverter.constructCartesianList()
+    darkgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 1)
+    darkgrey = darkgreyConverter.constructSpiralTraversalDirections()
+    lightgreyConverter = PolarImageConverter(puppy.lightgrey)
+    lightgreyConverter.cropImage()
+    lightgreyConverter.constructCartesianList()
+    lightgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 2)
+    lightgrey = lightgreyConverter.constructSpiralTraversalDirections()
+    saveCSV([stepsPerRotation,100.0/totalRotations],combineLists(black, darkgrey, lightgrey), 'puppy3way.csv')
