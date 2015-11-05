@@ -5,19 +5,32 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Adafruit_StepperMotor *motor1 = AFMS.getStepper(200, 2);
 
 int numsteps = 0;
+bool forwardMotor= 1; 
 
 void setup() {
   Serial.begin(9600);
 
   AFMS.begin();
-  motor1->setSpeed(10);  // 10 rpm   
+  motor1->setSpeed(100);  // 10 rpm   
+  
 }
 
 void loop() {
-  motor1->step(100, FORWARD, SINGLE); 
-  numsteps += 1;
-  Serial.println(numsteps);
-}
+  if (numsteps == 200){
+    forwardMotor = !forwardMotor;
+    numsteps = 0;
+  }
+  if (forwardMotor){
+    motor1->step(10, FORWARD); 
+    numsteps += 1;
+    Serial.println(numsteps);
+  }
+  else{
+      motor1->step(10, BACKWARD); 
+      numsteps += 1;
+      Serial.println(numsteps);
+    }
+  }
 
 void penUp() {
 	// do the control to put the pen up here
