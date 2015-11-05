@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 import spiral
 import csv
 import math
+import serial
+import time
+
+port = '/dev/ttyACM0'
+frequency = 9600
 
 # TODO: Potentially remove precision from the coordinates so that arduino doesn't overflow?
 
@@ -132,16 +137,45 @@ class PolarImageConverter(object):
             writer = csv.writer(f)
             writer.writerows(self.polarTraversal)
 
-def combineLists( l1, l2, l3=[]):
+def combineLists(l1, l2, l3=[]):
     return sorted(l1+l2+l3)
 
 
-def saveCSV(size, l, filename):
+def saveCSV(l, filename):
+    """
+    Final output like:
+    line 1: steps per rotation, radius size per rotation
+    rest: theta (degrees), up or down (0 or 1), which marker (0-2)
+    """
     with open(filename, 'wb') as f:
         writer = csv.writer(f)
-        writer.writerows([size])
         writer.writerows(l)
 
+def sendSerial(l):
+    ser = serial.Serial(port, frequency, timeout=2)
+    num_sent = 0
+    send_step = 100 # number of commands at which to pause
+    time.sleep(2)
+    ser.readline()
+    send = True
+    ser.write('.'.join(l[0]))
+
+    while True:
+        if ser.inWaiting():
+            send = False
+            reading = ser.readline()
+
+            if "b" in reading:
+                raw_input("Press enter to exit")
+                break
+
+            if "a" in reading:
+                num_sent += send_step
+                start = True
+
+        if send:
+            for command in l[num_sent:num_sent+send_step]:
+                ser.write('.'.join(command))
 
 if __name__=="__main__":
     puppy = spiral.Spiral('images/puppy.jpg')
@@ -163,4 +197,5 @@ if __name__=="__main__":
     lightgreyConverter.constructCartesianList()
     lightgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 2)
     lightgrey = lightgreyConverter.constructSpiralTraversalDirections()
-    saveCSV([stepsPerRotation,100.0/totalRotations],combineLists(black, darkgrey, lightgrey), 'puppy3way.csv')
+    directionsList = [[stepsPerRotation,100.0/totalRotations]]+combineLists(black, darkgrey, lightgrey)
+    saveCSV(directionsList, 'puppy3way.csv')
