@@ -11,25 +11,23 @@ void setup() {
   Serial.begin(9600);
 
   AFMS.begin();
-  motor1->setSpeed(100);  // 10 rpm   
+  motor1->setSpeed(500);  // 10 rpm   
   
 }
 
 void loop() {
-  if (numsteps == 200){
-    forwardMotor = !forwardMotor;
-    numsteps = 0;
-  }
+//  if (numsteps == 1000){
+//    forwardMotor = !forwardMotor;
+//    numsteps = 0;
+//  }
   if (forwardMotor){
-    motor1->step(10, FORWARD); 
+    motor1->step(5, FORWARD); 
     numsteps += 1;
-    Serial.println(numsteps);
   }
-  else{
-      motor1->step(10, BACKWARD); 
-      numsteps += 1;
-      Serial.println(numsteps);
-    }
+//  else{
+//      motor1->step(5, BACKWARD);
+//      numsteps += 1;
+//    }
   }
 
 void penUp() {
