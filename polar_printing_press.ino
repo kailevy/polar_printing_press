@@ -1,16 +1,29 @@
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
 #include "utility/Adafruit_PWMServoDriver.h"
-Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
+
+const int STEPS_PER_ROTATION = 200;
+const unsigned long ROTATIONS_PER_RADIUS = 100;
+const int CENTER_MOTOR_SPEED = 10;
+
+const int MARKER_PINS[1] = { 0 }; // the pins that the marker solenoids are on
+
+Adafruit_MotorShield AFMS = Adafruit_MotorShield();
+Adafruit_DCMotor *centerMotor = AFMS.getMotor(1);
 Adafruit_StepperMotor *motor1 = AFMS.getStepper(200, 2);
 
 int numsteps = 0;
+byte readyForCommand = 1;
+unsigned long currentAngle = 0;
 
 void setup() {
   Serial.begin(9600);
 
   AFMS.begin();
-  motor1->setSpeed(10);  // 10 rpm   
+
+  moveToBeginning(); // center the pens
+
+  centerMotor->setSpeed(CENTER_MOTOR_SPEED);
 }
 
 void loop() {
@@ -19,15 +32,19 @@ void loop() {
   Serial.println(numsteps);
 }
 
-void penUp() {
+void moveToBeginning() {
+  // reset the pen cars in their central position
+}
+
+void penUp(int marker) {
 	// do the control to put the pen up here
 }
 
-void penDown() {
+void penDown(int marker) {
 	// do pen down here
 }
 
-void moveFromPointToPoint(float startX, float startY, float endX, float endY) {
+void moveToAngle(unsigned long angle) {
 	// do things to move pen from point to point
 }
 
@@ -51,11 +68,5 @@ void readSerialCommand() {
 
   
   if (serialString.length() > 0) {
-    String color; // color is 0 for black, 1 for dark gray, 2 for light gray
-    String value;  
-    color = serialString.substring(0,5); // read first 5 chars
-    value = serialString.substring(6,9);
-
-    int v = value.toInt();
   } 
 }
