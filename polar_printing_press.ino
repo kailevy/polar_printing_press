@@ -15,6 +15,7 @@ Adafruit_StepperMotor *motor1 = AFMS.getStepper(200, 2);
 int numsteps = 0;
 byte readyForCommand = 1;
 unsigned long currentAngle = 0;
+bool forwardMotor= 1; 
 
 void setup() {
   Serial.begin(9600);
@@ -24,13 +25,24 @@ void setup() {
   moveToBeginning(); // center the pens
 
   centerMotor->setSpeed(CENTER_MOTOR_SPEED);
+  motor1->setSpeed(500);  // 10 rpm   
+  
 }
 
 void loop() {
-  motor1->step(100, FORWARD, SINGLE); 
-  numsteps += 1;
-  Serial.println(numsteps);
-}
+//  if (numsteps == 1000){
+//    forwardMotor = !forwardMotor;
+//    numsteps = 0;
+//  }
+  if (forwardMotor){
+    motor1->step(5, FORWARD); 
+    numsteps += 1;
+  }
+//  else{
+//      motor1->step(5, BACKWARD);
+//      numsteps += 1;
+//    }
+  }
 
 void moveToBeginning() {
   // reset the pen cars in their central position
