@@ -1,33 +1,37 @@
 #include <Wire.h>
-#include <Adafruit_MotorShield.h>
 #include "utility/Adafruit_PWMServoDriver.h"
-Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
-Adafruit_StepperMotor *motor1 = AFMS.getStepper(200, 2);
+const int EnablePin= 6;
+const int StepPin = 5;
+const int DirPin = 4;
+
+int x; 
+#define BAUD (9600) //Define the serial communication
 
 int numsteps = 0;
 bool forwardMotor= 1; 
 
 void setup() {
-  Serial.begin(9600);
-
-  AFMS.begin();
-  motor1->setSpeed(500);  // 10 rpm   
+  Serial.begin(BAUD);
+  pinMode(EnablePin, OUTPUT); //Enable value of stepper motor. if it's not low it won't work
+  pinMode(StepPin, OUTPUT); // Step of stepper motor
+  pinMode(DirPin,OUTPUT); //Dir of stepper motor. high is ?clockwise? and low is ?counter?
+  digitalWrite(EnablePin,LOW);//set Enable of stepper low
   
 }
 
 void loop() {
-//  if (numsteps == 1000){
-//    forwardMotor = !forwardMotor;
-//    numsteps = 0;
-//  }
-  if (forwardMotor){
-    motor1->step(5, FORWARD); 
-    numsteps += 1;
+  digitalWrite(6,LOW); // Set Enable low
+  digitalWrite(4,HIGH); // Set Dir high
+  Serial.println("Loop 200 steps (1 rev)");
+  for(x = 0; x < 200; x++) // Loop 200 times
+  {
+    digitalWrite(5,HIGH); // Output high
+    delay(10); // Wait
+    digitalWrite(5,LOW); // Output low
+    delay(100); // Wait
   }
-//  else{
-//      motor1->step(5, BACKWARD);
-//      numsteps += 1;
-//    }
+  Serial.println("Pause");
+  delay(1000); // pause one second
   }
 
 void penUp() {
