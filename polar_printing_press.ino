@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include "utility/Adafruit_PWMServoDriver.h"
+
 const int EnablePin= 6;
 const int StepPin = 5;
 const int DirPin = 4;
@@ -7,15 +8,36 @@ const int DirPin = 4;
 int x; 
 #define BAUD (9600) //Define the serial communication
 
+
+const int STEPS_PER_ROTATION = 200;
+const unsigned long ROTATIONS_PER_RADIUS = 100;
+
+
+const int MARKER_PINS[1] = { 0 }; // the pins that the marker solenoids are on
+
+
+
+
 int numsteps = 0;
+byte readyForCommand = 1;
+unsigned long currentAngle = 0;
 bool forwardMotor= 1; 
 
 void setup() {
+
   Serial.begin(BAUD);
   pinMode(EnablePin, OUTPUT); //Enable value of stepper motor. if it's not low it won't work
   pinMode(StepPin, OUTPUT); // Step of stepper motor
   pinMode(DirPin,OUTPUT); //Dir of stepper motor. high is ?clockwise? and low is ?counter?
   digitalWrite(EnablePin,LOW);//set Enable of stepper low
+
+
+
+
+  moveToBeginning(); // center the pens
+
+
+
   
 }
 
@@ -34,15 +56,19 @@ void loop() {
   delay(1000); // pause one second
   }
 
-void penUp() {
+void moveToBeginning() {
+  // reset the pen cars in their central position
+}
+
+void penUp(int marker) {
 	// do the control to put the pen up here
 }
 
-void penDown() {
+void penDown(int marker) {
 	// do pen down here
 }
 
-void moveFromPointToPoint(float startX, float startY, float endX, float endY) {
+void moveToAngle(unsigned long angle) {
 	// do things to move pen from point to point
 }
 
@@ -66,11 +92,5 @@ void readSerialCommand() {
 
   
   if (serialString.length() > 0) {
-    String color; // color is 0 for black, 1 for dark gray, 2 for light gray
-    String value;  
-    color = serialString.substring(0,5); // read first 5 chars
-    value = serialString.substring(6,9);
-
-    int v = value.toInt();
   } 
 }
