@@ -7,7 +7,7 @@ int presses = 0;
 long time = 0;
 long debounce = 200;
 
-void setup() {
+void setup1() {
    pinMode(inputPin, INPUT);
    digitalWrite(inputPin, HIGH);
 
@@ -15,7 +15,7 @@ void setup() {
    buttonState = digitalRead(inputPin); // store initial button state (should be high)
 }
 
-void loop() {
+void loop1() {
    val = digitalRead(inputPin);
 
    if (val != buttonState && millis() - time > debounce) {
