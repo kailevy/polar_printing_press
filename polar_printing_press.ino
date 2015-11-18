@@ -1,16 +1,4 @@
 
-
-//Stepper motor variables
-const int EnablePin= 6;//Enable value of stepper motor. if it's not low it won't work
-const int StepPin = 5; // Step of stepper motor
-const int DirPin = 4; //Dir of stepper motor. high is ?clockwise? and low is ?counter?
-int x; //variable for stepper driver looping
-
-//Limit switch variables
-
-
-#define BAUD (9600) //Define the serial communication
-
 // constants
 const int STEPS_PER_ROTATION = 200;
 const unsigned long ROTATIONS_PER_RADIUS = 100;
@@ -18,12 +6,10 @@ const int ROTARY_ENCODER_READ_DELAY = 0;
 const int NUM_MARKER_PINS = 1;
 
 // pins
-
-
 const int limInputPin = 9; //input pin for limit switch
-const int enablePin= 6;
+const int enablePin= 6;//Enable value of stepper motor. if it's not low it won't work
 const int stepPin = 5;
-const int dirPin = 4;
+const int dirPin = 4;high is ?clockwise? and low is ?counter?
 const int markerPins[NUM_MARKER_PINS] = {0}; // the pins that the marker solenoids are on
 const int rotaryEncoderA = 12;  // pin 12
 const int rotaryEncoderB = 11;  // pin 11
@@ -43,24 +29,12 @@ int presses = 0; //times limit switch is pressed
 long time = 0; // time for limit switch
 long debounce = 200; //debounce for limit switch
 
-
-//solenoid variables
-const int solenoidPin= 8;// the pin that the marker solenoid is on
-
-//unused variables that describe the system
-const int STEPS_PER_ROTATION = 200; //the stepper moves this in 1 rot.
-const unsigned long ROTATIONS_PER_RADIUS = 100; 
-byte readyForCommand = 1;// follows which way communication is happening across serial
-unsigned long currentAngle = 0; //follow the position of marker w/respect to angle
-bool forwardMotor= 1; // 
-
 #define BAUD (9600) //Define the serial communication
 
 int numsteps = 0;
 byte readyForCommand = 1;
 unsigned long currentAngle = 0;
 bool forwardMotor= 1; 
-
 
 void setup() {
   Serial.begin(BAUD);
@@ -85,7 +59,6 @@ void setup() {
   // move pens to beginning for setup
   moveToBeginning(); // center the pens
 
-
   // setup rotary encoder
   pinMode(rotaryEncoderA, INPUT);
   pinMode(rotaryEncoderB, INPUT);
@@ -96,9 +69,6 @@ void setup() {
   pinMode(limInputPin, INPUT);
   digitalWrite(limInputPin, HIGH);
   buttonState = digitalRead(limInputPin); // store initial button state (should be high)
-
-
-  pinMode(solenoidPin, OUTPUT); // set the Solenoid as arduino output
   
   moveToBeginning(); // center the pens 
 
@@ -144,8 +114,6 @@ void loop() {
 
     }
 
-  }
-
   buttonState = val;
 }
 
@@ -189,24 +157,12 @@ void readEncoder() {
   }
 }
 
-void penUp(int marker) {
-
-  //needs to take python command input
-	digitalWrite(solenoidPin, LOW);
-}
-
 void penDown(int marker) {
   //needs to take python command input
 	digitalWrite(solenoidPin, HIGH);
 
 	// do the control to put the pen up here
   digitalWrite(markerPins[marker], LOW);
-}
-
-void penDown(int marker) {
-	// do pen down here
-  digitalWrite(markerPins[marker], HIGH);
-
 }
 
 void moveToAngle(unsigned long angle) {
