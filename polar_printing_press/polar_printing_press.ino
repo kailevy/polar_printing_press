@@ -36,11 +36,11 @@ long debounce = 200; //debounce for limit switch
 int numsteps = 0;
 byte readyForCommand = 1;
 unsigned long currentAngle = 0;
-bool forwardMotor= 1; 
+bool forwardMotor= 1;
 
 void setup() {
   Serial.begin(BAUD);
-  
+
   // setup solenoids
 //  for (int i=0;i<NUM_MARKER_PINS;i++) {
 //    Serial.println(markerPins[i]);
@@ -54,7 +54,7 @@ void setup() {
   digitalWrite(enablePin,LOW);//set Enable of stepper low
 //
 //  // move pens to beginning for setup
-  moveToBeginning(); // center the pens
+  moveToSide(motorLimInputPin, IN); // center the pens
 //
 //  // setup rotary encoder
 //  pinMode(rotaryEncoderA, INPUT);
@@ -71,7 +71,7 @@ void setup() {
 void loop() {
   // read the encoder, this will update current state values
 
-  
+
 //  readEncoder();
 //
 //  // step the motor
@@ -86,7 +86,7 @@ void loop() {
 //  // do a bunch of limit switch things
 //  val = digitalRead(motorLimInputPin);
 //
-//  //debounce the limit switch first 
+//  //debounce the limit switch first
 //  if (val != buttonState && millis() - time > debounce) {
 //    if (buttonState == HIGH){
 //      presses = presses + 1;
@@ -94,10 +94,10 @@ void loop() {
 //      time = millis();
 //
 //      //and have stepper spin in the opposite direction
-//      
+//
 //     }
 //   }
-//   
+//
 //   //spin stepper motor
 //  digitalWrite(EnablePin,LOW); // Set Enable low
 //  digitalWrite(DirPin,HIGH); // Set Dir high
@@ -129,10 +129,10 @@ void stepMotor(bool clockwise, int steps) {
   }
 }
 
-void moveToBeginning() {
+void moveToSide(int inputPin, bool direction) {
   // reset the pen cars in their central position
-  while (digitalRead(motorLimInputPin) == LOW) {
-    stepMotor(IN, 1); // move toward center 1 rotation
+  while (digitalRead(inputPin) == LOW) {
+    stepMotor(direction, 1); // move toward center 1 rotation
   }
   Serial.println("Done");
 }
@@ -141,20 +141,20 @@ void readEncoder() {
   // get the current elapsed time
   currentTime = millis();
   if(currentTime >= (loopTime + ROTARY_ENCODER_READ_DELAY)){ // some delay
-    // 5ms since last check of encoder = 200Hz  
+    // 5ms since last check of encoder = 200Hz
     encoderA = digitalRead(rotaryEncoderA);    // Read encoder pins
-    encoderB = digitalRead(rotaryEncoderB);   
+    encoderB = digitalRead(rotaryEncoderB);
     if((!encoderA) && (encoderAprev)){
-      // A has gone from high to low 
+      // A has gone from high to low
       if(encoderB) {
         // B is high so clockwise
         // TODO: Update current value
       } else {
-        // B is low so counter-clockwise      
-        // TODO: Update current value      
+        // B is low so counter-clockwise
+        // TODO: Update current value
       }
     }
-    encoderAprev = encoderA;     // Store value of A for next time    
+    encoderAprev = encoderA;     // Store value of A for next time
     loopTime = currentTime;  // Updates loopTime
   }
 }
@@ -188,7 +188,7 @@ void readSerialCommand() {
     }
   }
 
-  
+
   if (serialString.length() > 0) {
-  } 
+  }
 }
