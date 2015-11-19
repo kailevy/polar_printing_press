@@ -4,13 +4,15 @@ const int STEPS_PER_ROTATION = 200;
 const unsigned long ROTATIONS_PER_RADIUS = 100;
 const int ROTARY_ENCODER_READ_DELAY = 0;
 const int NUM_MARKER_PINS = 1;
+const boolean IN = true;
+const boolean OUT = !IN;
 
 // pins
-const int limInputPin = 9; //input pin for limit switch
+const int motorLimInputPin = 9; //input pin for limit switch
 const int enablePin= 6;//Enable value of stepper motor. if it's not low it won't work
 const int stepPin = 5;
-const int dirPin = 4;high is ?clockwise? and low is ?counter?
-const int markerPins[NUM_MARKER_PINS] = {0}; // the pins that the marker solenoids are on
+const int dirPin = 4; //high is ?clockwise? and low is ?counter?
+const int markerPins[NUM_MARKER_PINS] = {9}; // the pins that the marker solenoids are on
 const int rotaryEncoderA = 12;  // pin 12
 const int rotaryEncoderB = 11;  // pin 11
 
@@ -38,83 +40,78 @@ bool forwardMotor= 1;
 
 void setup() {
   Serial.begin(BAUD);
-
-  pinMode(EnablePin, OUTPUT); //Enable stepper
-  pinMode(StepPin, OUTPUT); //Step
-  pinMode(DirPin,OUTPUT); //Dir
-  digitalWrite(EnablePin,LOW);//set Enable of stepper low
-
-
+  
   // setup solenoids
-  for (int i=0;i<NUM_MARKER_PINS;i++) {
-    pinMode(markerPins[i], OUTPUT);
-  }
+//  for (int i=0;i<NUM_MARKER_PINS;i++) {
+//    Serial.println(markerPins[i]);
+//    pinMode(markerPins[i], OUTPUT);
+//  }
 
   // setup the stepper motor driver
   pinMode(enablePin, OUTPUT); //Enable value of stepper motor. if it's not low it won't work
   pinMode(stepPin, OUTPUT); // Step of stepper motor
   pinMode(dirPin,OUTPUT); //Dir of stepper motor. high is ?clockwise? and low is ?counter?
   digitalWrite(enablePin,LOW);//set Enable of stepper low
-
-  // move pens to beginning for setup
+//
+//  // move pens to beginning for setup
   moveToBeginning(); // center the pens
-
-  // setup rotary encoder
-  pinMode(rotaryEncoderA, INPUT);
-  pinMode(rotaryEncoderB, INPUT);
-  currentTime = millis();
-  loopTime = currentTime;
-
-  // setup limit switch
-  pinMode(limInputPin, INPUT);
-  digitalWrite(limInputPin, HIGH);
-  buttonState = digitalRead(limInputPin); // store initial button state (should be high)
-  
-  moveToBeginning(); // center the pens 
-
+//
+//  // setup rotary encoder
+//  pinMode(rotaryEncoderA, INPUT);
+//  pinMode(rotaryEncoderB, INPUT);
+//  currentTime = millis();
+//  loopTime = currentTime;
+//
+//  // setup limit switch
+  pinMode(motorLimInputPin, INPUT);
+  digitalWrite(motorLimInputPin, HIGH);
+  buttonState = digitalRead(motorLimInputPin); // store initial button state (should be high)
 }
 
 void loop() {
   // read the encoder, this will update current state values
-  readEncoder();
 
-  // step the motor
-  stepMotor(true, 1);
-
-  // pen down, wait, pen up
-  penDown(0);
-  delay(5);
-  penUp(0);
-
-  // do a bunch of limit switch things
-  val = digitalRead(limInputPin);
-
-  //debounce the limit switch first 
-  if (val != buttonState && millis() - time > debounce) {
-    if (buttonState == HIGH){
-      presses = presses + 1;
-      Serial.println(presses);
-      time = millis();
-
-      //and have stepper spin in the opposite direction
-      
-     }
-   }
-   
-   //spin stepper motor
-  digitalWrite(EnablePin,LOW); // Set Enable low
-  digitalWrite(DirPin,HIGH); // Set Dir high
-  Serial.println("Loop 200 steps (1 rev)");
-  for(x = 0; x < 200; x++) // Loop 200 times
-  {
-    digitalWrite(5,HIGH); // Output high
-    delay(10); // Wait
-    digitalWrite(StepPin,LOW); // Output low
-    delay(100); // Wait
-
-    }
-
-  buttonState = val;
+  
+//  readEncoder();
+//
+//  // step the motor
+//  stepMotor(true, 1);
+//
+//  // pen down, wait, pen up
+//  penDown(0);
+//  delay(500);
+//  penUp(0);
+//  delay(500);
+//
+//  // do a bunch of limit switch things
+//  val = digitalRead(motorLimInputPin);
+//
+//  //debounce the limit switch first 
+//  if (val != buttonState && millis() - time > debounce) {
+//    if (buttonState == HIGH){
+//      presses = presses + 1;
+//      Serial.println(presses);
+//      time = millis();
+//
+//      //and have stepper spin in the opposite direction
+//      
+//     }
+//   }
+//   
+//   //spin stepper motor
+//  digitalWrite(EnablePin,LOW); // Set Enable low
+//  digitalWrite(DirPin,HIGH); // Set Dir high
+//  Serial.println("Loop 200 steps (1 rev)");
+//  for(x = 0; x < 200; x++) // Loop 200 times
+//  {
+//    digitalWrite(5,HIGH); // Output high
+//    delay(10); // Wait
+//    digitalWrite(StepPin,LOW); // Output low
+//    delay(100); // Wait
+//
+//    }
+//
+//  buttonState = val;
 }
 
 void stepMotor(bool clockwise, int steps) {
@@ -124,6 +121,7 @@ void stepMotor(bool clockwise, int steps) {
     digitalWrite(dirPin,LOW); // Set Dir high
   }
   for (int i=0; i<steps; i++) {
+    Serial.println("Step");
     digitalWrite(stepPin,HIGH); // Output high
     delay(1); // Wait
     digitalWrite(stepPin,LOW); // Output low
@@ -133,6 +131,10 @@ void stepMotor(bool clockwise, int steps) {
 
 void moveToBeginning() {
   // reset the pen cars in their central position
+  while (digitalRead(motorLimInputPin) == LOW) {
+    stepMotor(IN, 1); // move toward center 1 rotation
+  }
+  Serial.println("Done");
 }
 
 void readEncoder() {
@@ -159,14 +161,13 @@ void readEncoder() {
 
 void penDown(int marker) {
   //needs to take python command input
-	digitalWrite(solenoidPin, HIGH);
-
-	// do the control to put the pen up here
-  digitalWrite(markerPins[marker], LOW);
+  Serial.println(markerPins[marker]);
+	digitalWrite(markerPins[marker], HIGH);
 }
 
-void moveToAngle(unsigned long angle) {
-	// do things to move pen from point to point
+void penUp(int marker) {
+	// do the control to put the pen up here
+  digitalWrite(markerPins[marker], LOW);
 }
 
 void readSerialCommand() {
