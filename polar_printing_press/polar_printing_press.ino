@@ -39,7 +39,7 @@ long time = 0; // time for limit switch
 long debounce = 200; //debounce for limit switch
 
 int stateMachine = 0;
-int halfCircle = 20*60; // calibrate this!
+int halfCircle = 120; // calibrate this!
 // 1: alternate, 2: down, 3 & 4: up, increments every half circle
 boolean penState = 0;
 
@@ -77,13 +77,16 @@ void loop() {
   readRotationSwitch();
   readEncoder();
   Serial.println(rotationSteps);
-  if (rotationSteps >= halfCircle){
+
+  if (rotationSteps > halfCircle || rotationSteps < -halfCircle) {
+    Serial.println("hello");
     stateMachine = (stateMachine + 1)%4;
     rotationSteps = 0;
   }
+  
   switch(stateMachine){
     case 0:
-      if ((rotationSteps / 20) % 2 == 1){
+      if ((rotationSteps / 5) % 2 == 1){
         actuatePen(0,!penState);
       }
       break;
@@ -96,7 +99,7 @@ void loop() {
   }
         
   // step the motor
-  stepMotor(true, 1);
+  stepMotor(OUT, 1);
   
 
 }
@@ -108,7 +111,6 @@ void stepMotor(boolean clockwise, int steps) {
     digitalWrite(dirPin,LOW); // Set Dir low
   }
   for (int i=0; i<steps; i++) {
-    Serial.println("Step");
     digitalWrite(stepPin,HIGH); // Output high
     delay(1); // Wait
     digitalWrite(stepPin,LOW); // Output low
