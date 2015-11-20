@@ -59,6 +59,8 @@ void setup() {
   pinMode(dirPin,OUTPUT); //Dir of stepper motor. high is ?clockwise? and low is ?counter?
   digitalWrite(enablePin,LOW);//set Enable of stepper low
 
+  pinMode(motorLimInputPin, INPUT);
+  digitalWrite(motorLimInputPin, HIGH);
   // move pens to beginning for setup
   moveToSide(motorLimInputPin, IN); // center the pens
 
@@ -67,10 +69,6 @@ void setup() {
   pinMode(rotaryEncoderB, INPUT);
   currentTime = millis();
   loopTime = currentTime;
-  // setup limit switch
-  pinMode(motorLimInputPin, INPUT);
-  digitalWrite(motorLimInputPin, HIGH);
-  buttonState = digitalRead(motorLimInputPin); // store initial button state (should be high)
 }
 
 void loop() {
