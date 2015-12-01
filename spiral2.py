@@ -167,6 +167,9 @@ def sendSerial(l, send_step=10):
             send = False
             reading = ser.readline()
 
+            if (reading):
+                print(reading)
+
             if "b" in reading:
                 raw_input("Press enter to exit")
                 break
@@ -184,10 +187,11 @@ def sendSerial(l, send_step=10):
             ser.write("done")
             send = False
 
+
 if __name__=="__main__":
     puppy = spiral.Spiral('images/puppy.jpg')
     puppy.binary4_split()
-    totalRotations = 200
+    totalRotations = 100
     stepsPerRotation = 200
     blackConverter = PolarImageConverter(puppy.black)
     blackConverter.cropImage()
@@ -205,6 +209,6 @@ if __name__=="__main__":
     lightgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 2)
     lightgrey = lightgreyConverter.constructSpiralTraversalDirections()
     directionsList = [[stepsPerRotation,100.0/totalRotations]]+combineLists(black, darkgrey, lightgrey)
-    #saveCSV(directionsList, 'puppy3way.csv')
-    sendSerial(directionsList[0:200])
+    saveCSV(directionsList, 'puppy3way.csv')
+    sendSerial(directionsList)
 

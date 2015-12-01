@@ -1,4 +1,4 @@
-int num1 = 13;
+int num1 = 9;
 int num2 = 12;
 int num3 = 11;
 
@@ -11,12 +11,7 @@ void setup() {
 
 void loop() {
   digitalWrite(num1, HIGH);
-  digitalWrite(num3, LOW);
-  delay(100);
-  digitalWrite(num2, HIGH);
+  delay(75);
   digitalWrite(num1, LOW);
-  delay(100);
-  digitalWrite(num3, HIGH);
-  digitalWrite(num2, LOW);
-  delay(100);
+  delay(75);
 }
