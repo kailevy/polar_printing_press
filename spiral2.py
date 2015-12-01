@@ -3,6 +3,12 @@ import cv2
 import matplotlib.pyplot as plt
 import spiral
 import csv
+import math
+import serial
+import time
+
+port = '/dev/ttyACM0'
+frequency = 9600
 
 # TODO: Potentially remove precision from the coordinates so that arduino doesn't overflow?
 
@@ -21,6 +27,7 @@ class PolarImageConverter(object):
         self.origin = None
         self.cartesianList = []
         self.polarList = []
+        self.spiralList = []
 
     def cropImage(self):
         #delete odd sized columns and rows
@@ -29,6 +36,19 @@ class PolarImageConverter(object):
         if self.imageSize[1] % 2 == 0:
             self.imageArray = np.delete(self.imageArray, 0, axis=1)
         self.imageSize = self.imageArray.shape
+
+        # Crop not square images
+        if self.imageSize[0] > self.imageSize[1]:
+            largerSide = 0
+        else:
+            largerSide = 1
+        sideDifference = self.imageSize[largerSide] - self.imageSize[1-largerSide]
+        self.imageArray = np.delete(self.imageArray, range(sideDifference/2), axis=largerSide)
+        self.imageArray = np.delete(self.imageArray, range(len(self.imageArray)-sideDifference/2,len(self.imageArray)), axis=largerSide)
+
+        # save variables for drawing
+        self.imageSize = self.imageArray.shape
+        self.largestRadius = min(self.imageSize) / 2
 
 
     def constructCartesianList(self):
@@ -67,17 +87,115 @@ class PolarImageConverter(object):
                 self.polarTraversal.append((tmp[0][0],tmp[0][1],coord[0],coord[1]))
                 tmp = []
 
+    def constructSpiralCommands(self, totalRotations, stepsPerRotation, marker):
+        """
+        Markers:
+        0 = black (driving)
+        1 = darkgrey (+120 degrees)
+        2 = lightgrey (+240 degrees)
+        """
+        self.spiralList = [[100.0/totalRotations]]
+        steps = 0.0
+        angle = 0
+        radius = 0
+
+        for i in range(totalRotations*stepsPerRotation):
+            # constructs all of the angle, rotation, and radius variables for this step
+            steps += 1.0
+            rotations = steps / stepsPerRotation
+            angle = (360.0) * steps / stepsPerRotation + 120 * marker
+            radiansAngle = angle * math.pi / 180.0
+            radius = rotations / totalRotations * self.largestRadius
+
+            # gets the predicted x and y coordinates and gets the image data nearest to that
+            # angle will be from right spiraling counter clockwise
+            xDistance = int(round(radius * math.cos(radiansAngle))) + self.largestRadius
+            yDistance = self.largestRadius - int(round(radius * math.sin(radiansAngle)))
+
+            self.spiralList.append([int(round(angle)), self.imageArray[xDistance][yDistance], marker])
+
+    def constructSpiralTraversalDirections(self):
+        """
+        Constructs list with traversal directions in form of
+        (down point, up point)
+        """
+        self.spiralTraversal = [self.spiralList[1]] # self.spiralList[0] is a command
+        prevCommand = self.spiralList[1][1]
+        for coord in self.spiralList[2:]:
+            if coord[1] != prevCommand:
+                self.spiralTraversal.append(coord)
+            prevCommand = coord[1]
+        return self.spiralTraversal
+
+    def saveSpiralCSV(self, filename):
+        with open(filename, 'wb') as f:
+            writer = csv.writer(f)
+            writer.writerows(self.spiralTraversal)
+
     def savePolarCSV(self, filename):
         with open(filename, 'wb') as f:
             writer = csv.writer(f)
             writer.writerows(self.polarTraversal)
 
+def combineLists(l1, l2, l3=[]):
+    return sorted(l1+l2+l3)
+
+
+def saveCSV(l, filename):
+    """
+    Final output like:
+    line 1: steps per rotation, radius size per rotation
+    rest: theta (degrees), up or down (0 or 1), which marker (0-2)
+    """
+    with open(filename, 'wb') as f:
+        writer = csv.writer(f)
+        writer.writerows(l)
+
+def sendSerial(l):
+    ser = serial.Serial(port, frequency, timeout=2)
+    num_sent = 0
+    send_step = 100 # number of commands at which to pause
+    time.sleep(2)
+    ser.readline()
+    send = True
+    ser.write('.'.join(l[0]))
+
+    while True:
+        if ser.inWaiting():
+            send = False
+            reading = ser.readline()
+
+            if "b" in reading:
+                raw_input("Press enter to exit")
+                break
+
+            if "a" in reading:
+                num_sent += send_step
+                start = True
+
+        if send:
+            for command in l[num_sent:num_sent+send_step]:
+                ser.write('.'.join(command))
+
 if __name__=="__main__":
     puppy = spiral.Spiral('images/puppy.jpg')
     puppy.binary4_split()
-    converter = PolarImageConverter(puppy.black)
-    converter.cropImage()
-    converter.constructCartesianList()
-    converter.constructPolarFromCartesian()
-    converter.constructTraversalDirections()
-    converter.savePolarCSV('puppypolartraversal.csv')
+    totalRotations = 200
+    stepsPerRotation = 200
+    blackConverter = PolarImageConverter(puppy.black)
+    blackConverter.cropImage()
+    blackConverter.constructCartesianList()
+    blackConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 0)
+    black = blackConverter.constructSpiralTraversalDirections()
+    darkgreyConverter = PolarImageConverter(puppy.darkgrey)
+    darkgreyConverter.cropImage()
+    darkgreyConverter.constructCartesianList()
+    darkgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 1)
+    darkgrey = darkgreyConverter.constructSpiralTraversalDirections()
+    lightgreyConverter = PolarImageConverter(puppy.lightgrey)
+    lightgreyConverter.cropImage()
+    lightgreyConverter.constructCartesianList()
+    lightgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 2)
+    lightgrey = lightgreyConverter.constructSpiralTraversalDirections()
+    directionsList = [[stepsPerRotation,100.0/totalRotations]]+combineLists(black, darkgrey, lightgrey)
+    saveCSV(directionsList, 'puppy3way.csv')
