@@ -151,10 +151,9 @@ def saveCSV(l, filename):
         writer = csv.writer(f)
         writer.writerows(l)
 
-def sendSerial(l):
+def sendSerial(l, send_step=100):
     ser = serial.Serial(port, frequency, timeout=2)
     num_sent = 0
-    send_step = 100 # number of commands at which to pause
     time.sleep(2)
     ser.readline()
     send = True
