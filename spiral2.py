@@ -7,7 +7,7 @@ import math
 import serial
 import time
 
-port = '/dev/ttyACM0'
+port = 'COM16'
 frequency = 9600
 
 # TODO: Potentially remove precision from the coordinates so that arduino doesn't overflow?
@@ -151,13 +151,16 @@ def saveCSV(l, filename):
         writer = csv.writer(f)
         writer.writerows(l)
 
-def sendSerial(l, send_step=100):
+def sendSerial(l, send_step=10):
     ser = serial.Serial(port, frequency, timeout=2)
-    num_sent = 0
+    tot_num = len(l)
     time.sleep(2)
     ser.readline()
-    send = True
-    ser.write('.'.join(l[0]))
+    send = True # should be False? so we wait before we send actual commands
+    send_string = ",".join("{0}".format(n) for n in l[0])
+    print send_string
+    ser.write(send_string)
+    num_sent = 1
 
     while True:
         if ser.inWaiting():
@@ -169,12 +172,17 @@ def sendSerial(l, send_step=100):
                 break
 
             if "a" in reading:
-                num_sent += send_step
-                start = True
+                send = True
 
-        if send:
+        if send and num_sent < tot_num:
             for command in l[num_sent:num_sent+send_step]:
-                ser.write('.'.join(command))
+                send_string = ",".join("{0}".format(n) for n in command)
+                print send_string
+                ser.write(send_string)
+            num_sent += send_step
+            print 'done'
+            ser.write("done")
+            send = False
 
 if __name__=="__main__":
     puppy = spiral.Spiral('images/puppy.jpg')
@@ -197,4 +205,6 @@ if __name__=="__main__":
     lightgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 2)
     lightgrey = lightgreyConverter.constructSpiralTraversalDirections()
     directionsList = [[stepsPerRotation,100.0/totalRotations]]+combineLists(black, darkgrey, lightgrey)
-    saveCSV(directionsList, 'puppy3way.csv')
+    #saveCSV(directionsList, 'puppy3way.csv')
+    sendSerial(directionsList[0:200])
+
