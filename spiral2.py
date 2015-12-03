@@ -187,8 +187,8 @@ def sendSerial(l, send_step=10):
 if __name__=="__main__":
     puppy = spiral.Spiral('images/puppy.jpg')
     puppy.binary4_split()
-    totalRotations = 200
-    stepsPerRotation = 200
+    totalRotations = 160
+    stepsPerRotation = 360
     blackConverter = PolarImageConverter(puppy.black)
     blackConverter.cropImage()
     blackConverter.constructCartesianList()
@@ -207,4 +207,3 @@ if __name__=="__main__":
     directionsList = [[stepsPerRotation,100.0/totalRotations]]+combineLists(black, darkgrey, lightgrey)
     #saveCSV(directionsList, 'puppy3way.csv')
     sendSerial(directionsList[0:200])
-
