@@ -156,16 +156,19 @@ def sendSerial(l, send_step=10):
     tot_num = len(l)
     time.sleep(2)
     ser.readline()
-    send = True # should be False? so we wait before we send actual commands
+    send = False # should be False? so we wait before we send actual commands
     send_string = ",".join("{0}".format(n) for n in l[0])
-    print send_string
-    ser.write(send_string)
+    # print send_string
+    ser.write(send_string+';')
     num_sent = 1
 
     while True:
         if ser.inWaiting():
             send = False
             reading = ser.readline()
+
+            if (reading):
+                print(reading.strip())
 
             if "b" in reading:
                 raw_input("Press enter to exit")
@@ -178,11 +181,12 @@ def sendSerial(l, send_step=10):
             for command in l[num_sent:num_sent+send_step]:
                 send_string = ",".join("{0}".format(n) for n in command)
                 print send_string
-                ser.write(send_string)
+                ser.write(send_string+';')
             num_sent += send_step
-            print 'done'
-            ser.write("done")
+            print 'sent'
+            ser.write("d"+';')
             send = False
+
 
 if __name__=="__main__":
     puppy = spiral.Spiral('images/puppy.jpg')
@@ -206,4 +210,6 @@ if __name__=="__main__":
     lightgrey = lightgreyConverter.constructSpiralTraversalDirections()
     directionsList = [[stepsPerRotation,100.0/totalRotations]]+combineLists(black, darkgrey, lightgrey)
     #saveCSV(directionsList, 'puppy3way.csv')
-    sendSerial(directionsList[0:200])
+    sendSerial(directionsList, 80)
+
+>>>>>>> 2de35b6388fcb511d4987e09f3a1fca07018c769
