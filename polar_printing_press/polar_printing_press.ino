@@ -1,4 +1,6 @@
 
+#define BAUD (9600) //Define the serial communication
+
 // constants
 const int STEPS_PER_ROTATION = 200;
 const unsigned long ROTATIONS_PER_RADIUS = 100;
@@ -7,16 +9,17 @@ const int NUM_MARKER_PINS = 1;
 const boolean IN = true;
 const boolean OUT = !IN;
 
-// pins
-const int motorLimInputPin = 8; //input pin for limit switch
-const int enablePin= 6;//Enable value of stepper motor. if it's not low it won't work
-const int stepPin = 5;
-const int dirPin = 4; //high is ?clockwise? and low is ?counter?
-const int markerPins[NUM_MARKER_PINS] = {9}; // the pins that the marker solenoids are on
-const int rotaryEncoderA = 12;  // pin 12
-const int rotaryEncoderB = 11;  // pin 11
+// ir sensor constants
+const int IR_SENSOR_THRESHOLD = 100;
+const int NUM_BW_PER_ROTATION = 360;
 
-#define BAUD (9600) //Define the serial communication
+// pins
+const int rotationLimInputPin = 8; //input pin for limit switch
+const int stepperEnablePin= 6;//Enable value of stepper motor. if it's not low it won't work
+const int stepperStepPin = 5;
+const int stepperDirectionPin = 4; //high is ?clockwise? and low is ?counter?
+const int markerPins[NUM_MARKER_PINS] = {9}; // the pins that the marker solenoids are on
+const int irSensorPin = A5;
 
 // current state variables
 int x; //variable for stepper driver looping
@@ -38,6 +41,13 @@ int val; //val for limit switch
 long time = 0; // time for limit switch
 long debounce = 200; //debounce for limit switch
 
+// ir sensor vars
+int irSensorNumSteps = 0;
+int irSensorValue = 0;
+int irSensorState = 0; // 0 for black, 1 for white
+int irPrevSensorState = 0;
+long irSensorLastDebounceTime = 0;
+
 int stateMachine = 0;
 int halfCircle = 120; // calibrate this!
 // 1: alternate, 2: down, 3 & 4: up, increments every half circle
@@ -54,15 +64,18 @@ void setup() {
   }
 
   // setup the stepper motor driver
-  pinMode(enablePin, OUTPUT); //Enable value of stepper motor. if it's not low it won't work
-  pinMode(stepPin, OUTPUT); // Step of stepper motor
-  pinMode(dirPin,OUTPUT); //Dir of stepper motor. high is ?clockwise? and low is ?counter?
-  digitalWrite(enablePin,LOW);//set Enable of stepper low
+  pinMode(stepperEnablePin, OUTPUT); //Enable value of stepper motor. if it's not low it won't work
+  pinMode(stepperStepPin, OUTPUT); // Step of stepper motor
+  pinMode(stepperDirectionPin,OUTPUT); //Dir of stepper motor. high is ?clockwise? and low is ?counter?
+  digitalWrite(stepperEnablePin,LOW);//set Enable of stepper low
 
-  pinMode(motorLimInputPin, INPUT);
-  digitalWrite(motorLimInputPin, HIGH);
+  pinMode(rotationLimInputPin, INPUT);
+  digitalWrite(rotationLimInputPin, HIGH);
   // move pens to beginning for setup
-  moveToSide(motorLimInputPin, IN); // center the pens
+  moveToSide(rotationLimInputPin, IN); // center the pens
+
+  // ir sensor setup
+  irSensorLastDebounceTime = millis();
 
   // setup rotary encoder
   pinMode(rotaryEncoderA, INPUT);
@@ -106,21 +119,21 @@ void loop() {
 
 void stepMotor(boolean clockwise, int steps) {
   if (clockwise) {
-    digitalWrite(dirPin,HIGH); // Set Dir high
+    digitalWrite(stepperDirectionPin,HIGH); // Set Dir high
   } else {
-    digitalWrite(dirPin,LOW); // Set Dir low
+    digitalWrite(stepperDirectionPin,LOW); // Set Dir low
   }
   for (int i=0; i<steps; i++) {
-    digitalWrite(stepPin,HIGH); // Output high
+    digitalWrite(stepperStepPin,HIGH); // Output high
     delay(1); // Wait
-    digitalWrite(stepPin,LOW); // Output low
+    digitalWrite(stepperStepPin,LOW); // Output low
     delay(1); // Wait
   }
 }
 
 void readRotationSwitch(){
   // do a bunch of limit switch things
-  int val = digitalRead(motorLimInputPin);
+  int val = digitalRead(rotationLimInputPin);
 
   //debounce the limit switch first
   if (val != buttonState && millis() - time > debounce) {
@@ -140,25 +153,22 @@ void moveToSide(int inputPin, bool direction) {
   Serial.println("Done");
 }
 
-void readEncoder() {
-  // get the current elapsed time
-  currentTime = millis();
-  if(currentTime >= (loopTime + ROTARY_ENCODER_READ_DELAY)){ // some delay
-    // 5ms since last check of encoder = 200Hz
-    encoderA = digitalRead(rotaryEncoderA);    // Read encoder pins
-    encoderB = digitalRead(rotaryEncoderB);
-    if((!encoderA) && (encoderAprev)){
-      // A has gone from high to low
-      if(encoderB) {
-        // B is high so clockwise
-        rotationSteps++;
-      } else {
-        // B is low so counter-clockwise
-        rotationSteps--;
-      }
+void readIrSensor() {
+  irSensorValue = analogRead(irSensorPin);
+
+  int currentState;
+  if (irSensorValue >= IR_SENSOR_THRESHOLD) {
+    currentState = 1;
+  } else {
+    currentState = 0;
+  }
+
+  if (currentState != irSensorState) {
+    irSensorState = currentState;
+    numSteps++;
+    if (numSteps % NUM_BW_PER_ROTATION == 0) {
+      Serial.println("ONE FULL ROTATION");
     }
-    encoderAprev = encoderA;     // Store value of A for next time
-    loopTime = currentTime;  // Updates loopTime
   }
 }
 
