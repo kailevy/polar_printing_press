@@ -11,7 +11,7 @@ void setup() {
    digitalWrite(inputPin, HIGH);
 
    Serial.begin(9600);
-   buttonState = digitalRead(inputPin); // store initial button state (should be high)
+   limitSwitchState = digitalRead(inputPin); // store initial button state (should be high)
 }
 
 void loop() {
