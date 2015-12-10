@@ -139,25 +139,36 @@ void loop() {
   readRotationSwitch();
   readIrSensor();
   if (executing) {
-  
+
     if (currentCommand > numCommands) {
-      Serial.println("Done");
+      Serial.println("Done with current commands");
+      executing = 0;
+      lastRotations = numRotations; // maybe don't need this?
+      lastRotationSteps = rotationSteps;
     } else if (360*numRotations + rotationSteps >= angles[currentCommand]) {
       actuatePen(0, upDown[currentCommand]);
       currentCommand++;
     }
-  
+
     long degreesDone = NUM_BW_PER_ROTATION * numRotations + rotationSteps;
     long stepsNeeded = degreesDone * stepperStepsPerDegree / SCALE_VALUE;
-  
+
     if (stepsNeeded > stepperStepsDone) {
       stepsQueue += stepsNeeded - stepperStepsDone;
       stepperStepsDone += stepsNeeded - stepperStepsDone;
     }
-  
+
     stepIfNeeded();
   } else {
-    
+    // TODO: read waiting commands from serial and reset command counter
+    if (currentCommand == 0){
+      // we have read the commands and reset the command counter, so we wait to
+      // hit the limit switch to start again
+      if (rotationSteps == lastRotationSteps) {
+        // only start executing when we have rotated to the same point we were at when we stopped
+        executing = 1;
+      }
+    }
   }
 }
 
@@ -190,7 +201,7 @@ void stepMotor(int in, int steps) {
 
 void readRotationSwitch(){
   rotationLimitSwitchVal = digitalRead(rotationLimInputPin);
-   
+
   if (rotationLimitSwitchVal != rotationLimitSwitchState && millis() - rotationLimitSwitchLastToggleTime > rotationLimitSwitchDebounceTime) {
     rotationLimitSwitchState = rotationLimitSwitchVal;
     rotationLimitSwitchLastToggleTime = millis();
@@ -205,7 +216,7 @@ void readRotationSwitch(){
 
 void readBarSwitch(){
   barLimitSwitchVal = digitalRead(barLimInputPin);
-   
+
   if (barLimitSwitchVal != barLimitSwitchState && millis() - barLimitSwitchLastToggleTime > barLimitSwitchDebounceTime) {
     barLimitSwitchPresses = barLimitSwitchPresses + 1;
     barLimitSwitchState = barLimitSwitchVal;
@@ -259,6 +270,7 @@ void penUp(int marker) {
 }
 
 void readSerialCommand() {
+  // TODO update this with correct version
   // we can only get one byte at a time, so we have to fill a string, and then parse it
   String serialString = "";
   int count = 0;
