@@ -90,6 +90,8 @@ int lastRotations = 0;
 void setup() {
   Serial.begin(BAUD);
 
+  // TODO: Receive the first command and store it as platterRotationsNeededPerImage
+
 // setup solenoids
   setupSolenoids();
 
@@ -144,7 +146,7 @@ void loop() {
   if (executing) {
 
     if (currentCommand > numCommands) {
-      Serial.println("Done with current commands");
+      Serial.println("Done with current commands"); // TODO: change this to 'a' for arduino communication
       executing = 0;
       lastRotations = numRotations; // maybe don't need this?
       lastRotationSteps = rotationSteps;
