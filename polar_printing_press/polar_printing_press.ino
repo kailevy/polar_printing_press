@@ -8,6 +8,7 @@ const int BIG_ROTS = 200; // number of stepper motor rotations for the width of 
 const unsigned long ROTATIONS_PER_RADIUS = 100;
 const int ROTARY_ENCODER_READ_DELAY = 0;
 const int NUM_MARKER_PINS = 1;
+const int NUM_COMMANDS = 10; // number of commands to process at once
 const int IN = LOW;
 const int OUT = !IN;
 const int UP = LOW;
@@ -79,6 +80,8 @@ long stepsQueue = 0;
 long lastStepTime = 0;
 
 int stepperState = HIGH;
+
+int serialIndex = 0;
 
 boolean executing = 1;
 int lastRotationSteps = 0;
@@ -269,26 +272,42 @@ void penUp(int marker) {
   digitalWrite(markerPins[marker], LOW);
 }
 
-void readSerialCommand() {
-  // TODO update this with correct version
-  // we can only get one byte at a time, so we have to fill a string, and then parse it
-  String serialString = "";
-  int count = 0;
-  bool done = false;
-  while (Serial.available() && !done) {
-    delay(3);  // delay is apparently necessary
-    if (Serial.available() > 0) {
-      char c = Serial.read();
-      serialString += c;
-      count++;
-      if (c=='\n') { // Don't overflow serial string
-        serialString[count] = '\0'; // null terminate
-        done = true;
-      }
-    }
-  }
+String readSerialString() {
+  String serialString = Serial.readStringUntil(';');
+  serialString.trim();
+  return serialString;
+}
 
+void readSerialCommand() {
+  String serialString = readSerialString();
 
   if (serialString.length() > 0) {
+    if (serialString == "d") {
+      //for (int i=0; i<NUM_COMMANDS; i++) {
+        // Serial.println(angles[i]);
+//        Serial.println(markers[i]);
+//        Serial.println(ups[i]);
+      //}
+      currentCommand = 0;
+      //Serial.println("a");
+    } else {
+      int commaIndex = serialString.indexOf(",");
+      String angleString = serialString.substring(0, commaIndex);
+      unsigned int angle = angleString.toInt();
+      String rest = serialString.substring(commaIndex+1);
+      commaIndex = rest.indexOf(",");
+      String upString = rest.substring(0,commaIndex);
+      int up = upString.toInt();
+      String markerString = rest.substring(commaIndex+1);
+      int marker = markerString.toInt();
+
+      angles[serialIndex] = angle;
+      //markers[serialIndex] = marker;
+      upDown[serialIndex] = up;
+      serialIndex++;
+      if (serialIndex == NUM_COMMANDS) {
+        serialIndex = 0;
+      }
+    }
   }
 }
