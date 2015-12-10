@@ -26,7 +26,7 @@ void setup() {
   pinMode(StepPin, OUTPUT); // Step of stepper motor
   pinMode(DirPin,OUTPUT); //Dir of stepper motor. high is ?clockwise? and low is ?counter?
   digitalWrite(EnablePin,LOW);//set Enable of stepper low
-
+  digitalWrite(DirPin,HIGH);
 
 
   moveToBeginning(); // center the pens
@@ -38,7 +38,6 @@ void setup() {
 
 void loop() {
   digitalWrite(6,LOW); // Set Enable low
-  digitalWrite(4,HIGH); // Set Dir high
   Serial.println("Loop 200 steps (1 rev)");
   for(x = 0; x < 200; x++) // Loop 200 times
   {
@@ -48,7 +47,7 @@ void loop() {
     delay(5); // Wait
   }
   Serial.println("Pause");
-  delay(1000); // pause one second
+  delay(100000); // pause one second
   }
 
 void moveToBeginning() {

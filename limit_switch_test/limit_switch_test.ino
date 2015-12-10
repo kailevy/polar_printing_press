@@ -1,4 +1,4 @@
-int inputPin = 9;
+int inputPin = 11;
 
 int limitSwitchState;
 int limitSwitchVal;
@@ -16,6 +16,7 @@ void setup() {
 
 void loop() {
   limitSwitchVal = digitalRead(inputPin);
+  //Serial.println(limitSwitchVal);
    
   if (limitSwitchVal != limitSwitchState && millis() - limitSwitchLastToggleTime > limitSwitchDebounceTime) {
     limitSwitchPresses = limitSwitchPresses + 1;
