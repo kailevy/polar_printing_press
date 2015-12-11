@@ -62,7 +62,7 @@ int irSensorState = 0; // 0 for black, 1 for white
 int irPrevSensorState = 0;
 long irSensorLastDebounceTime = 0;
 
-#define NUM_COMMANDS 20
+#define NUM_COMMANDS 30
 int currentCommand = NUM_COMMANDS;
 int numCommands = NUM_COMMANDS;
 unsigned long angles[NUM_COMMANDS];
@@ -87,6 +87,7 @@ int serialIndex = 0;
 boolean executing = 0;
 boolean initialized = 0;
 boolean rotationsZeroed = 0;
+boolean done = 0;
 int lastRotationSteps = 0;
 int lastRotations = 0;
 
@@ -177,8 +178,9 @@ void loop() {
       stepsQueue += stepsNeeded - stepperStepsDone;
       stepperStepsDone += stepsNeeded - stepperStepsDone;
     }
-
-    stepIfNeeded();
+    if (!done) {
+      stepIfNeeded();
+    }
   } else if (initialized) {
 
     if (currentCommand == 0) { // if have commands, wait for the press to re-center itself
@@ -312,6 +314,10 @@ void readSerialCommands() {
       currentCommand = 0;
       //Serial.println("a");
     } else {
+      // check for done
+      if (serialString == "done") {
+        done = 1;
+      }
       int commaIndex = serialString.indexOf(",");
       String angleString = serialString.substring(0, commaIndex);
       unsigned int angle = angleString.toInt();
