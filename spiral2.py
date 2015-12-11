@@ -135,7 +135,7 @@ class PolarImageConverter(object):
             writer = csv.writer(f)
             writer.writerows(self.polarTraversal)
 
-def combineLists(l1, l2, l3=[]):
+def combineLists(l1, l2=[], l3=[]):
     return sorted(l1+l2+l3)
 
 
@@ -187,7 +187,7 @@ def sendSerial(l, send_step=10):
 
 
 if __name__=="__main__":
-    puppy = spiral.Spiral('images/puppy.jpg')
+    puppy = spiral.Spiral('images/Square.png')
     puppy.binary4_split()
     totalRotations = 160
     stepsPerRotation = 360
@@ -208,4 +208,4 @@ if __name__=="__main__":
     # lightgrey = lightgreyConverter.constructSpiralTraversalDirections()
     directionsList = [[totalRotations]]+combineLists(black)
     #saveCSV(directionsList, 'puppy3way.csv')
-    sendSerial(directionsList, 80)
+    sendSerial(directionsList, 20)

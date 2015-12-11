@@ -62,11 +62,12 @@ int irSensorState = 0; // 0 for black, 1 for white
 int irPrevSensorState = 0;
 long irSensorLastDebounceTime = 0;
 
-int currentCommand = 10;
-int numCommands = 10;
-unsigned long angles[10];
-int upDown[10];
-int solenoidState = LOW;
+#define NUM_COMMANDS 20
+int currentCommand = NUM_COMMANDS;
+int numCommands = NUM_COMMANDS;
+unsigned long angles[NUM_COMMANDS];
+int upDown[NUM_COMMANDS];
+int solenoidState[NUM_MARKER_PINS] = {LOW};
 
 // NUM_BW_PER_ROTATION
 unsigned long STEPS_PER_LEAD_SCREW_ROTATION = 80;
@@ -159,6 +160,9 @@ void loop() {
       Serial.println("a"); 
       executing = 0;
       rotationsZeroed = 0;
+      for (int i=0; i<NUM_MARKER_PINS; i++) {
+        delayPen(markerPins[i]);
+      }
       lastRotations = numRotations; // maybe don't need this?
       lastRotationSteps = rotationSteps;
     } else if (360*numRotations + rotationSteps >= angles[currentCommand]) {
@@ -186,6 +190,9 @@ void loop() {
       if (rotationSteps == lastRotationSteps && rotationsZeroed) {
         // only start executing when we have rotated to the same point we were at when we stopped
         executing = 1;
+        for (int i=0; i<NUM_MARKER_PINS; i++) {
+          restorePen(markerPins[i]);
+        }
       }
     } else { // if no commands, need to get commands
       readSerialCommands();
@@ -275,7 +282,15 @@ void readIrSensor() {
 void actuatePen(int marker, int state){
   // state is either 0 or 1
   digitalWrite(markerPins[marker], state);
-  solenoidState = state;
+  solenoidState[marker] = state;
+}
+
+void delayPen(int marker) {
+  digitalWrite(markerPins[marker], UP);
+}
+
+void restorePen(int marker) {
+  digitalWrite(markerPins[marker], solenoidState[marker]);
 }
 
 String readSerialString() {
