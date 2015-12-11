@@ -9,3 +9,7 @@ The Python parts of the code will process an image and convert this to a binariz
 ## Arduino
 
 The Arduino code reads from a CSV and controls the motors to draw the image. 
+
+## Website and Documentation
+
+Documentation can be found on our website here: http://poepolarprintingpress.weebly.com/. 
