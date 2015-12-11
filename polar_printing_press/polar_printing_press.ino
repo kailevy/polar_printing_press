@@ -62,35 +62,35 @@ int irSensorState = 0; // 0 for black, 1 for white
 int irPrevSensorState = 0;
 long irSensorLastDebounceTime = 0;
 
-int currentCommand = 0;
-int numCommands = 18;
-long angles[18] = {0, 360*3, 30*360+210, 30*360+330, 31*360+60, 31*360+70, 31*360+120, 31*360+130, 32*360+60, 32*360+70, 32*360+120, 32*360+130, 33*360+60, 33*360+70, 33*360+120, 33*360+130,  50*360, 51*360};
-int upDown[18] = {DOWN, UP, DOWN, UP, DOWN, UP, DOWN, UP, DOWN, UP, DOWN, UP, DOWN, UP, DOWN, UP, DOWN, UP};
+int currentCommand = 10;
+int numCommands = 10;
+unsigned long angles[10];
+int upDown[10];
 int solenoidState = LOW;
 
 // NUM_BW_PER_ROTATION
-long STEPS_PER_LEAD_SCREW_ROTATION = 80;
-long platterRotationsNeededPerImage = 130;
-long LEAD_SCREW_ROTATIONS_PER_IMAGE = 200;
-long SCALE_VALUE = 1000;
+unsigned long STEPS_PER_LEAD_SCREW_ROTATION = 80;
+unsigned long platterRotationsNeededPerImage;
+unsigned long LEAD_SCREW_ROTATIONS_PER_IMAGE = 200;
+unsigned long SCALE_VALUE = 1000;
 
-long stepperStepsPerDegree = SCALE_VALUE * STEPS_PER_LEAD_SCREW_ROTATION * LEAD_SCREW_ROTATIONS_PER_IMAGE / (platterRotationsNeededPerImage * NUM_BW_PER_ROTATION);
-long stepperStepsDone = 0;
-long stepsQueue = 0;
-long lastStepTime = 0;
+unsigned long stepperStepsPerDegree;
+unsigned long stepperStepsDone = 0;
+unsigned long stepsQueue = 0;
+unsigned long lastStepTime = 0;
 
 int stepperState = HIGH;
 
 int serialIndex = 0;
 
-boolean executing = 1;
+boolean executing = 0;
+boolean initialized = 0;
+boolean rotationsZeroed = 0;
 int lastRotationSteps = 0;
 int lastRotations = 0;
 
 void setup() {
   Serial.begin(BAUD);
-
-  // TODO: Receive the first command and store it as platterRotationsNeededPerImage
 
 // setup solenoids
   setupSolenoids();
@@ -116,7 +116,6 @@ void setup() {
 
 void setupSolenoids() {
   for (int i=0;i<NUM_MARKER_PINS;i++) {
-    Serial.println(markerPins[i]);
     pinMode(markerPins[i], OUTPUT);
   }
 }
@@ -140,14 +139,26 @@ void setupBarLimInputSwitch() {
 }
 
 void loop() {
+  // if we don't have the totalRotations, get it now
+  if (!initialized) {
+    platterRotationsNeededPerImage = readSerialString().toInt();
+    if (platterRotationsNeededPerImage != 0) {
+      stepperStepsPerDegree = SCALE_VALUE * STEPS_PER_LEAD_SCREW_ROTATION * LEAD_SCREW_ROTATIONS_PER_IMAGE / (platterRotationsNeededPerImage * NUM_BW_PER_ROTATION);
+      initialized = 1;
+      Serial.print("Initialized");
+      Serial.println(platterRotationsNeededPerImage);
+    }
+  }
+
   // read the encoder, this will update current state values
   readRotationSwitch();
   readIrSensor();
   if (executing) {
 
-    if (currentCommand > numCommands) {
-      Serial.println("Done with current commands"); // TODO: change this to 'a' for arduino communication
+    if (currentCommand >= numCommands) {
+      Serial.println("a"); 
       executing = 0;
+      rotationsZeroed = 0;
       lastRotations = numRotations; // maybe don't need this?
       lastRotationSteps = rotationSteps;
     } else if (360*numRotations + rotationSteps >= angles[currentCommand]) {
@@ -164,15 +175,20 @@ void loop() {
     }
 
     stepIfNeeded();
-  } else {
-    // TODO: read waiting commands from serial and reset command counter
-    if (currentCommand == 0){
+  } else if (initialized) {
+
+    if (currentCommand == 0) { // if have commands, wait for the press to re-center itself
       // we have read the commands and reset the command counter, so we wait to
       // hit the limit switch to start again
-      if (rotationSteps == lastRotationSteps) {
+      if (rotationLimitSwitchState == HIGH) {
+        rotationsZeroed = 1;
+      }
+      if (rotationSteps == lastRotationSteps && rotationsZeroed) {
         // only start executing when we have rotated to the same point we were at when we stopped
         executing = 1;
       }
+    } else { // if no commands, need to get commands
+      readSerialCommands();
     }
   }
 }
@@ -180,13 +196,13 @@ void loop() {
 int count = 0;
 
 void stepIfNeeded() {
-  if (stepperState == HIGH && millis() - lastStepTime >= 4) {
+  if (stepperState == HIGH && millis() - lastStepTime >= 3) {
     stepperState = LOW;
     digitalWrite(stepperStepPin,stepperState);
     lastStepTime = millis();
     stepsQueue--;
     count++;
-  } else if (stepperState == LOW && stepsQueue > 0 && millis() - lastStepTime >= 4) {
+  } else if (stepperState == LOW && stepsQueue > 0 && millis() - lastStepTime >= 3) {
     stepperState = HIGH;
     digitalWrite(stepperStepPin,stepperState);
     lastStepTime = millis();
@@ -240,7 +256,6 @@ void moveToBeginning(int inputPin) {
 
 void readIrSensor() {
   irSensorValue = analogRead(irSensorPin);
-  //Serial.println(irSensorValue);
 
   int currentState;
   if (irSensorValue >= IR_SENSOR_THRESHOLD) {
@@ -263,24 +278,13 @@ void actuatePen(int marker, int state){
   solenoidState = state;
 }
 
-void penDown(int marker) {
-  //needs to take python command input
-  Serial.println(markerPins[marker]);
-	digitalWrite(markerPins[marker], HIGH);
-}
-
-void penUp(int marker) {
-	// do the control to put the pen up here
-  digitalWrite(markerPins[marker], LOW);
-}
-
 String readSerialString() {
   String serialString = Serial.readStringUntil(';');
   serialString.trim();
   return serialString;
 }
 
-void readSerialCommand() {
+void readSerialCommands() {
   String serialString = readSerialString();
 
   if (serialString.length() > 0) {
@@ -306,7 +310,9 @@ void readSerialCommand() {
       angles[serialIndex] = angle;
       //markers[serialIndex] = marker;
       upDown[serialIndex] = up;
+      Serial.println(angle);
       serialIndex++;
+      Serial.println(serialIndex);
       if (serialIndex == NUM_COMMANDS) {
         serialIndex = 0;
       }
