@@ -41,6 +41,11 @@ class Spiral(object):
         # cv2.waitKey(0)
         cv2.imwrite('images/binarized/'+IMG_NAME+'/3shades.png', tmp)
 
+    def binary_split(self):
+        high_thresh, thresh_im = cv2.threshold(self.img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        low_thresh = 0.5*high_thresh
+        self.black = cv2.inRange(self.image, low_thresh, high_thresh)
+
     def binary4_split(self):
         """
         Splits image into 4 binarized images with different light thresholds and displays them separate
@@ -55,11 +60,11 @@ class Spiral(object):
         # cv2.imshow("draw mid grey", midgrey)
         # cv2.imshow("draw light grey", lightgrey)
         # cv2.imshow("leave white", white)
-        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_black.png', self.black)
-        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_darkgrey.png', self.darkgrey)
+        # cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_black.png', self.black)
+        # cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_darkgrey.png', self.darkgrey)
         # cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_midgrey.png', self.midgrey)
-        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_lightgrey.png', self.lightgrey)
-        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_white.png', self.white)
+        # cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_lightgrey.png', self.lightgrey)
+        # cv2.imwrite('images/binarized/'+IMG_NAME+'/binary_white.png', self.white)
         # cv2.waitKey(0)
 
 

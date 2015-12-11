@@ -10,8 +10,6 @@ import time
 port = 'COM16'
 frequency = 9600
 
-# TODO: Potentially remove precision from the coordinates so that arduino doesn't overflow?
-
 def cart2pol(x,y):
     r = np.sqrt(x**2 + y**2)
     theta = np.arctan2(y,x) + np.pi
@@ -198,18 +196,16 @@ if __name__=="__main__":
     blackConverter.constructCartesianList()
     blackConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 0)
     black = blackConverter.constructSpiralTraversalDirections()
-    darkgreyConverter = PolarImageConverter(puppy.darkgrey)
-    darkgreyConverter.cropImage()
-    darkgreyConverter.constructCartesianList()
-    darkgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 1)
-    darkgrey = darkgreyConverter.constructSpiralTraversalDirections()
-    lightgreyConverter = PolarImageConverter(puppy.lightgrey)
-    lightgreyConverter.cropImage()
-    lightgreyConverter.constructCartesianList()
-    lightgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 2)
-    lightgrey = lightgreyConverter.constructSpiralTraversalDirections()
-    directionsList = [[totalRotations]]+combineLists(black, darkgrey, lightgrey)
+    # darkgreyConverter = PolarImageConverter(puppy.darkgrey)
+    # darkgreyConverter.cropImage()
+    # darkgreyConverter.constructCartesianList()
+    # darkgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 1)
+    # darkgrey = darkgreyConverter.constructSpiralTraversalDirections()
+    # lightgreyConverter = PolarImageConverter(puppy.lightgrey)
+    # lightgreyConverter.cropImage()
+    # lightgreyConverter.constructCartesianList()
+    # lightgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 2)
+    # lightgrey = lightgreyConverter.constructSpiralTraversalDirections()
+    directionsList = [[totalRotations]]+combineLists(black)
     #saveCSV(directionsList, 'puppy3way.csv')
     sendSerial(directionsList, 80)
-
->>>>>>> 2de35b6388fcb511d4987e09f3a1fca07018c769
