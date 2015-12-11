@@ -208,7 +208,7 @@ if __name__=="__main__":
     lightgreyConverter.constructCartesianList()
     lightgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 2)
     lightgrey = lightgreyConverter.constructSpiralTraversalDirections()
-    directionsList = [[stepsPerRotation,100.0/totalRotations]]+combineLists(black, darkgrey, lightgrey)
+    directionsList = [[totalRotations]]+combineLists(black, darkgrey, lightgrey)
     #saveCSV(directionsList, 'puppy3way.csv')
     sendSerial(directionsList, 80)
 
