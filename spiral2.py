@@ -6,6 +6,7 @@ import csv
 import math
 import serial
 import time
+import sys
 
 port = 'COM16'
 frequency = 9600
@@ -192,21 +193,22 @@ def sendSerial(l, send_step=10):
 
 
 if __name__=="__main__":
-    puppy = spiral.Spiral('images/broncos.png')
-    puppy.binary4_split()
+    image_path = sys.argv[1]
+    image = spiral.Spiral(image_path)
+    image.binary_split()
     totalRotations = 160
     stepsPerRotation = 360
-    blackConverter = PolarImageConverter(puppy.black)
+    blackConverter = PolarImageConverter(image.black)
     blackConverter.cropImage()
     blackConverter.constructCartesianList()
     blackConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 0)
     black = blackConverter.constructSpiralTraversalDirections()
-    # darkgreyConverter = PolarImageConverter(puppy.darkgrey)
+    # darkgreyConverter = PolarImageConverter(image.darkgrey)
     # darkgreyConverter.cropImage()
     # darkgreyConverter.constructCartesianList()
     # darkgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 1)
     # darkgrey = darkgreyConverter.constructSpiralTraversalDirections()
-    # lightgreyConverter = PolarImageConverter(puppy.lightgrey)
+    # lightgreyConverter = PolarImageConverter(image.lightgrey)
     # lightgreyConverter.cropImage()
     # lightgreyConverter.constructCartesianList()
     # lightgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 2)
