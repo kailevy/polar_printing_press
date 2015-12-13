@@ -2,8 +2,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 from binarize import Binarize
-import csv
-import math, serial, time, sys
+import csv, math, serial, time, sys
 
 port = 'COM16'
 frequency = 9600
@@ -205,16 +204,6 @@ if __name__=="__main__":
     blackConverter.constructCartesianList()
     blackConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 0)
     black = blackConverter.constructSpiralTraversalDirections()
-    # darkgreyConverter = PolarImageConverter(image.darkgrey)
-    # darkgreyConverter.cropImage()
-    # darkgreyConverter.constructCartesianList()
-    # darkgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 1)
-    # darkgrey = darkgreyConverter.constructSpiralTraversalDirections()
-    # lightgreyConverter = PolarImageConverter(image.lightgrey)
-    # lightgreyConverter.cropImage()
-    # lightgreyConverter.constructCartesianList()
-    # lightgreyConverter.constructSpiralCommands(totalRotations, stepsPerRotation, 2)
-    # lightgrey = lightgreyConverter.constructSpiralTraversalDirections()
     directionsList = [[totalRotations]]+combineLists(black)
     print("Starting serial")
     sendSerial(directionsList, 50)
