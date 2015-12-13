@@ -163,6 +163,7 @@ def sendSerial(l, send_step=10):
     while True:
         if num_sent >= tot_num:
             ser.write("done;")
+            print("done")
             break
 
         if ser.inWaiting():
@@ -191,7 +192,7 @@ def sendSerial(l, send_step=10):
 
 
 if __name__=="__main__":
-    puppy = spiral.Spiral('images/che.png')
+    puppy = spiral.Spiral('images/broncos.png')
     puppy.binary4_split()
     totalRotations = 160
     stepsPerRotation = 360
@@ -212,4 +213,5 @@ if __name__=="__main__":
     # lightgrey = lightgreyConverter.constructSpiralTraversalDirections()
     directionsList = [[totalRotations]]+combineLists(black)
     #saveCSV(directionsList, 'puppy3way.csv')
-    sendSerial(directionsList, 30)
+    print("Starting serial")
+    sendSerial(directionsList, 50)

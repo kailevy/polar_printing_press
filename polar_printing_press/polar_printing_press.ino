@@ -2,11 +2,10 @@
 #define BAUD (9600) //Define the serial communication
 
 // constants
-const int STEPS_PER_ROTATION = 200;
-const int SMALL_ROTS = 130; // number of stepper motor rotations for the width of a smaller paper
-const int BIG_ROTS = 200; // number of stepper motor rotations for the width of the whole platter
+const unsigned long STEPS_PER_ROTATION = 200;
+const unsigned long SMALL_ROTS = 130; // number of stepper motor rotations for the width of a smaller paper
+const unsigned long BIG_ROTS = 200; // number of stepper motor rotations for the width of the whole platter
 const unsigned long ROTATIONS_PER_RADIUS = 100;
-const int ROTARY_ENCODER_READ_DELAY = 0;
 const int NUM_MARKER_PINS = 1;
 const int NUM_COMMANDS = 10; // number of commands to process at once
 const int IN = LOW;
@@ -28,18 +27,11 @@ const int markerPins[NUM_MARKER_PINS] = {10}; // the pins that the marker soleno
 const int irSensorPin = A5;
 
 // current state variables
-int x; //variable for stepper driver looping
-unsigned long currentTime;
-unsigned long loopTime;
-unsigned char encoderA;
-unsigned char encoderB;
-unsigned char encoderAprev=0;
-
 byte readyForCommand = 1;
 unsigned long currentAngle = 0;
 boolean forwardMotor= 1;
-int numRotations = 0;
-int rotationSteps = 0;
+unsigned long numRotations = 0;
+unsigned long rotationSteps = 0;
 
 // limit switch on bar vars
 int barLimitSwitchState;
@@ -56,13 +48,11 @@ long rotationLimitSwitchLastToggleTime = 0;
 long rotationLimitSwitchDebounceTime = 200; //debounce for limit switch
 
 // ir sensor vars
-int irSensorNumSteps = 0;
 int irSensorValue = 0;
 int irSensorState = 0; // 0 for black, 1 for white
 int irPrevSensorState = 0;
-long irSensorLastDebounceTime = 0;
 
-#define NUM_COMMANDS 30
+#define NUM_COMMANDS 50
 int currentCommand = NUM_COMMANDS;
 int numCommands = NUM_COMMANDS;
 unsigned long angles[NUM_COMMANDS];
@@ -88,8 +78,8 @@ boolean executing = 0;
 boolean initialized = 0;
 boolean rotationsZeroed = 0;
 boolean done = 0;
-int lastRotationSteps = 0;
-int lastRotations = 0;
+unsigned long lastRotationSteps = 0;
+unsigned long lastRotations = 0;
 
 void setup() {
   Serial.begin(BAUD);
@@ -141,6 +131,7 @@ void setupBarLimInputSwitch() {
 }
 
 void loop() {
+  
   // if we don't have the totalRotations, get it now
   if (!initialized) {
     platterRotationsNeededPerImage = readSerialString().toInt();
@@ -320,7 +311,7 @@ void readSerialCommands() {
       }
       int commaIndex = serialString.indexOf(",");
       String angleString = serialString.substring(0, commaIndex);
-      unsigned int angle = angleString.toInt();
+      unsigned long angle = stringToLong(angleString);
       String rest = serialString.substring(commaIndex+1);
       commaIndex = rest.indexOf(",");
       String upString = rest.substring(0,commaIndex);
@@ -340,3 +331,12 @@ void readSerialCommands() {
     }
   }
 }
+
+long stringToLong(String s) {
+  int len = s.length();
+  char charArray[len+1];
+  s.toCharArray(charArray, len+1);
+  long res = atol(charArray);
+  return res;
+}
+
