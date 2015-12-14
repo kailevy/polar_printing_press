@@ -189,7 +189,7 @@ def sendSerial(l, send_step=10):
                 ser.write(send_string+';')
             num_sent += send_step
             print 'sent'
-            ser.write("d"+';') # Character to tell arduino we're done sending commands
+            ser.write('d;') # Character to tell arduino we're done sending commands
             send = False
 
 
@@ -197,6 +197,7 @@ if __name__=="__main__":
     image_path = sys.argv[1]
     image = Binarize(image_path)
     image.binary_split()
+    image.display_black()
     totalRotations = 160
     stepsPerRotation = 360
     blackConverter = PolarImageConverter(image.black)
@@ -207,3 +208,4 @@ if __name__=="__main__":
     directionsList = [[totalRotations]]+combineLists(black)
     print("Starting serial")
     sendSerial(directionsList, 50)
+

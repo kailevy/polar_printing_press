@@ -45,9 +45,9 @@ class Binarize(object):
         """
         Binarizes an image, with adaptive thresholds based on Otsu's method
         """
-        high_thresh, thresh_im = cv2.threshold(self.img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        high_thresh, thresh_im = cv2.threshold(self.image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         low_thresh = 0.5*high_thresh
-        self.black = cv2.inRange(self.image, low_thresh, high_thresh)
+        self.black = cv2.inRange(self.image, 0, 127)
 
     def binary4_split(self):
         """
@@ -75,8 +75,8 @@ class Binarize(object):
         """
         Displays the automatic binary image
         """
-        # cv2.imshow("image", self.image_bw)
-        cv2.imwrite('images/binarized/'+IMG_NAME+'/binary.png', self.image_bw)
+        cv2.imshow("image", self.image_bw)
+        # cv2.imwrite('images/binarized/'+IMG_NAME+'/binary.png', self.image_bw)
         cv2.waitKey(0)
 
     def display_image(self):
@@ -86,8 +86,14 @@ class Binarize(object):
         cv2.imshow("image", self.image)
         cv2.waitKey(0)
 
+    def display_black(self):
+        """
+        Displays black
+        """
+        cv2.imshow("image", self.black)
+        cv2.waitKey(0)
+
 if __name__ == '__main__':
-    puppy = Spiral('images/poehler.jpg')
-    puppy.binary4()
-    puppy.binary4_split()
-    puppy.display_binary()
+    im = Binarize('images/Square.png')
+    im.binary_split()
+    im.display_binary()
