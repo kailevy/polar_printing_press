@@ -45,9 +45,7 @@ class Binarize(object):
         """
         Binarizes an image, with adaptive thresholds based on Otsu's method
         """
-        high_thresh, thresh_im = cv2.threshold(self.image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        low_thresh = 0.5*high_thresh
-        self.black = cv2.inRange(self.image, 0, 127)
+        thresh, self.black = cv2.threshold(self.image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
     def binary4_split(self):
         """
@@ -96,4 +94,4 @@ class Binarize(object):
 if __name__ == '__main__':
     im = Binarize('images/Square.png')
     im.binary_split()
-    im.display_binary()
+    im.display_black()
