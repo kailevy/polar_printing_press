@@ -12,7 +12,6 @@ class Binarize(object):
         """
         self.image = cv2.imread(image,0) # grey-scaled
         self.im2 = cv2.imread(image) #non grey-scaled
-        self.thresh, self.image_bw = cv2.threshold(self.image, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
         self.black = None
         self.darkgrey = None
         self.lightgrey = None
@@ -48,14 +47,6 @@ class Binarize(object):
         self.darkgrey = cv2.inRange(self.image, 41, 131)
         self.lightgrey = cv2.inRange(self.image, 132, 220)
         self.white = cv2.inRange(self.image, 221, 255)
-
-
-    def display_binary(self):
-        """
-        Displays the automatic binary image
-        """
-        cv2.imshow("image", self.image_bw)
-        cv2.waitKey(0)
 
     def display_image(self):
         """
