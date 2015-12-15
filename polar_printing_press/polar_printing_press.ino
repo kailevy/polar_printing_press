@@ -94,8 +94,6 @@ void setup() {
   setupRotationLimInputSwitch();
   setupBarLimInputSwitch();
 
-  // currently don't need ir sensor setup
-
   // move pens to beginning for setup
   moveToBeginning(barLimInputPin); // center the pens
 
@@ -131,7 +129,6 @@ void setupBarLimInputSwitch() {
 }
 
 void loop() {
-  
   // if we don't have the totalRotations, get it now
   if (!initialized) {
     platterRotationsNeededPerImage = readSerialString().toInt();
@@ -149,7 +146,8 @@ void loop() {
   if (executing) {
 
     if (currentCommand >= numCommands) {
-      Serial.println("a"); 
+      // We need to receive more commands, cache our state, and stop executing
+      Serial.println("a");
       executing = 0;
       rotationsZeroed = 0;
       for (int i=0; i<NUM_MARKER_PINS; i++) {
@@ -158,21 +156,27 @@ void loop() {
       lastRotations = numRotations; // maybe don't need this?
       lastRotationSteps = rotationSteps;
     } else if (360*numRotations + rotationSteps >= angles[currentCommand]) {
+      // Execute the current command
       actuatePen(0, upDown[currentCommand]);
       currentCommand++;
     }
 
+    // Keep track of our current progress
     long degreesDone = NUM_BW_PER_ROTATION * numRotations + rotationSteps;
     long stepsNeeded = degreesDone * stepperStepsPerDegree / SCALE_VALUE;
 
     if (stepsNeeded > stepperStepsDone) {
+      // Check if we should be stepping the stepper
       stepsQueue += stepsNeeded - stepperStepsDone;
       stepperStepsDone += stepsNeeded - stepperStepsDone;
     }
-    stepIfNeeded();
+    if (!done) {
+      stepIfNeeded();
+    }
   } else if (initialized) {
 
-    if (currentCommand == 0) { // if have commands, wait for the press to re-center itself
+    if (currentCommand == 0) {
+      // if we have just received commands, wait for the press to re-zero itself
       // we have read the commands and reset the command counter, so we wait to
       // hit the limit switch to start again
       if (rotationLimitSwitchState == HIGH) {
@@ -200,7 +204,7 @@ void stepIfNeeded() {
     lastStepTime = millis();
     stepsQueue--;
     count++;
-  } else if (stepperState == LOW && stepsQueue > 0 && millis() - lastStepTime >= 3 && !done) {
+  } else if (stepperState == LOW && stepsQueue > 0 && millis() - lastStepTime >= 3) {
     stepperState = HIGH;
     digitalWrite(stepperStepPin,stepperState);
     lastStepTime = millis();
@@ -265,8 +269,6 @@ void readIrSensor() {
   if (currentState != irSensorState) {
     irSensorState = currentState;
     rotationSteps++;
-
-    // DO SOMETHING
   }
 }
 
@@ -295,13 +297,7 @@ void readSerialCommands() {
 
   if (serialString.length() > 0) {
     if (serialString == "d") {
-      //for (int i=0; i<NUM_COMMANDS; i++) {
-        // Serial.println(angles[i]);
-//        Serial.println(markers[i]);
-//        Serial.println(ups[i]);
-      //}
       currentCommand = 0;
-      //Serial.println("a");
     } else {
       // check for done
       if (serialString == "done") {
@@ -317,8 +313,8 @@ void readSerialCommands() {
       String markerString = rest.substring(commaIndex+1);
       int marker = markerString.toInt();
 
-      angles[serialIndex] = angle;
       //markers[serialIndex] = marker;
+      angles[serialIndex] = angle;
       upDown[serialIndex] = up;
       Serial.println(angle);
       serialIndex++;
@@ -337,4 +333,3 @@ long stringToLong(String s) {
   long res = atol(charArray);
   return res;
 }
-
