@@ -1,11 +1,13 @@
 # POE Polar Printing Press Project
 
-This repository holds our code for our polar printing press. Further documentation can be found on our website [here](http://poepolarprintingpress.weebly.com/)
+This repository holds our code for our polar printing press. Further documentation can be found on our [website](http://poepolarprintingpress.weebly.com/)
 
 ## Prerequisites
-- OpenCV (cv2)
-- Numpy
+- [OpenCV](https://help.ubuntu.com/community/OpenCV)
+- Numpy and its dependencies
+  - `apt-get install python-numpy`
 - PySerial
+  - `pip install pyserial`
 
 ## Usage
 ### Arduino
