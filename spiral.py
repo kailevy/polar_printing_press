@@ -166,12 +166,14 @@ def sendSerial(l, send_step=10):
 
     while True:
         if num_sent >= tot_num:
-            # We've finished commands, we are done
-            ser.write("done;")
-            print("done")
-            break
+            if ser.inWaiting():
+                if "a" in ser.readline()
+                    # We've finished commands, we are done
+                    ser.write("done;")
+                    print("done")
+                    break
 
-        if ser.inWaiting():
+        elif ser.inWaiting():
             send = False
             reading = ser.readline()
 
@@ -182,7 +184,7 @@ def sendSerial(l, send_step=10):
                 # Arduino is ready for more commands
                 send = True
 
-        if send and num_sent < tot_num:
+        elif send and num_sent < tot_num:
             for command in l[num_sent:num_sent+send_step]:
                 send_string = ",".join("{0}".format(n) for n in command)
                 print send_string
@@ -208,4 +210,3 @@ if __name__=="__main__":
     directionsList = [[totalRotations]]+combineLists(black)
     print("Starting serial")
     sendSerial(directionsList, 50)
-
