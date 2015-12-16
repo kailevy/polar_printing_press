@@ -167,7 +167,7 @@ def sendSerial(l, send_step=10):
     while True:
         if num_sent >= tot_num:
             if ser.inWaiting():
-                if "a" in ser.readline()
+                if "a" in ser.readline():
                     # We've finished commands, we are done
                     ser.write("done;")
                     print("done")

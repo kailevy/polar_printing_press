@@ -38,6 +38,7 @@ class Binarize(object):
         Binarizes an image, with adaptive thresholds based on Otsu's method
         """
         thresh, self.black = cv2.threshold(self.image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        self.black = cv2.inRange(self.image,0,thresh)
 
     def binary4_split(self):
         """
