@@ -1,5 +1,7 @@
 # POE Polar Printing Press Project
 
+![Polar Printing Press!](./polar_printing_gif.gif)
+
 This repository holds our code for our polar printing press. Further documentation can be found on our [website](http://poepolarprintingpress.weebly.com/)
 
 ## Prerequisites
